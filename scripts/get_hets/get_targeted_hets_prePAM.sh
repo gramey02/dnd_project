@@ -5,9 +5,18 @@
 #$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/get_targeted_hets_prePAM.out
 #$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/get_targeted_hets_prePAM.err
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd "$script_dir/../.." && pwd)"
+
 # parse input arguments
-param_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/params.txt"
-source $param_file
+param_file="$project_root/data/params/params.txt"
+source "$param_file"
+
+if [[ "$OUTPUT_DIR" = /* ]]; then
+  resolved_output_base="$OUTPUT_DIR"
+else
+  resolved_output_base="$project_root/$OUTPUT_DIR"
+fi
 
 mkdir_if_missing() {
   local d="$1"
@@ -164,11 +173,11 @@ mkdir_if_missing() {
 strategies=("indels" "CRISPRoff" "donor_base_edits" "acceptor_base_edits")
 
 for cur_strat in "${strategies[@]}"; do
-    make_het_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/prePAM_hets"
+    make_het_dir="$resolved_output_base$RUN_NAME/$cur_strat/prePAM_hets"
     mkdir_if_missing "$make_het_dir"
-    output_dir=$make_het_dir
-    common_var_vcf_file_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_vcfs"
-    gene_info="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
+    output_dir="$make_het_dir"
+    common_var_vcf_file_dir="$resolved_output_base$RUN_NAME/$cur_strat/excavate/input_vcfs"
+    gene_info="$resolved_output_base$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
 
     echo "Processing $cur_strat..."
     echo "Output dir: $make_het_dir"
@@ -180,7 +189,7 @@ for cur_strat in "${strategies[@]}"; do
         gzip -dk "$f" &>/dev/null
     done
 
-    python3 /wynton/home/capra/gramey02/ConklinCollab/scripts/DN_targeted_hets/get_targeted_hets_prePAM.py \
+    python3 "$script_dir/get_targeted_hets_prePAM.py" \
         --output_dir "$output_dir" \
         --gene_info "$gene_info" \
         --filtered_vcf_dir "$common_var_vcf_file_dir" \

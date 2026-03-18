@@ -5,8 +5,17 @@
 #$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/non_exicision_setup.out
 #$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/non_excision_setup.err
 
-param_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/params.txt"
-source $param_file
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd "$script_dir/../.." && pwd)"
+
+param_file="$project_root/data/params/params.txt"
+source "$param_file"
+
+if [[ "$OUTPUT_DIR" = /* ]]; then
+  resolved_output_base="$OUTPUT_DIR"
+else
+  resolved_output_base="$project_root/$OUTPUT_DIR"
+fi
 
 # make directory to hold info
 mkdir_if_missing() {
@@ -18,15 +27,15 @@ mkdir_if_missing() {
     echo "Directory '$d' created."
   fi
 }
-mkdir_if_missing "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs"
-mkdir_if_missing "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/metadata"
-mkdir_if_missing "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/checkpoints"
-mkdir_if_missing "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/results"
-mkdir_if_missing "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/logs"
+mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs"
+mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/metadata"
+mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/checkpoints"
+mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/results"
+mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/logs"
 
 # merge the information on genes into one file
-BASE=$OUTPUT_DIR$RUN_NAME
-merged_fp="$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides.txt"
+BASE="$resolved_output_base$RUN_NAME"
+merged_fp="$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides.txt"
 
 > "$merged_fp"  # truncate/create file
 
@@ -37,7 +46,7 @@ for strat in indels CRISPRoff acceptor_base_edits donor_base_edits; do
 done
 
 # get the unique genes from the file
-unique_genes_file="$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/metadata/unique_genes_with_valid_guides_non_excision.txt"
+unique_genes_file="$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/metadata/unique_genes_with_valid_guides_non_excision.txt"
 cut -f1 "$merged_fp" | sort -u > "$unique_genes_file"
 num_unique_genes=$(wc -l < "$unique_genes_file")
 
@@ -45,7 +54,7 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 all_strats_together="False"
 
 # run array job prioritizing non-excision gRNAs for each gene
-shell_script="/wynton/home/capra/gramey02/ConklinCollab/scripts/pipeline_scripts/gRNA_prioritization/non_excision_guides_array_setup.sh"
+shell_script="$script_dir/non_excision_guides_array_setup.sh"
 #gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $unique_genes_file)
-output_dir="$OUTPUT_DIR$RUN_NAME"
-qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=5:00:00 $shell_script "$output_dir" "$unique_genes_file" "$param_file" $all_strats_together
+output_dir="$resolved_output_base$RUN_NAME"
+qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=5:00:00 "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together"

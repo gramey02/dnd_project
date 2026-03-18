@@ -5,17 +5,19 @@
 #$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/get_acceptor_splice_site_vars.out
 #$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/get_acceptor_splice_site_vars.err
 
-# parse input args
-output_dir=$1
-param_file=$2
-source $param_file
-exon_file=$3
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-script="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_BaseEditing/get_acceptor_splice_site_vars.py"
+# parse input args
+output_dir="$1"
+param_file="$2"
+source "$param_file"
+exon_file="$3"
+
+script="$script_dir/get_acceptor_splice_site_vars.py"
 
 # Run the script below
-python3 $script --exon_file $exon_file \
-  --af_limit $AF_LIMIT \
-  --editing_window_size $EDITING_WINDOW_SIZE \
-  --acceptor_snp_region $ACCEPTOR_SNP_REGION \
-  --output_dir $output_dir
+python3 "$script" --exon_file "$exon_file" \
+  --af_limit "$AF_LIMIT" \
+  --editing_window_size "$EDITING_WINDOW_SIZE" \
+  --acceptor_snp_region "$ACCEPTOR_SNP_REGION" \
+  --output_dir "$output_dir"
