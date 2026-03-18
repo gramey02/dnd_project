@@ -43,14 +43,11 @@ num_common_var_genes=$(wc -l < $common_var_genes) # get the number of genes that
 # I think the filtering in the next step is better
 
 # script to determine viable pairs of snps, to narrow down the number of snps for future steps
-filter_excision_snps="/wynton/protected/home/capra/gramey02/ConklinCollab/scripts/pipeline_scripts/filter_excision_snps.sh"
+filter_excision_snps="$project_root/scripts/format_variants/filter_excision_snps.sh"
 cv_dict_filepath=$output_dir"/CommonVars/CommonVars_ALL_dict.pkl"
 echo "Filtering snps based on those that encompass exons across transcripts..."
-qsub -t 1-"$num_common_var_genes" -sync y -l mem_free=10G -l h_rt=03:00:00 $filter_excision_snps "$output_dir/CommonVars/refined_common_vars" "$param_file" "$cv_dict_filepath" "$exon_file" "$common_var_genes"
+qsub -t 1-"$num_common_var_genes" -sync y -l mem_free=10G -l h_rt=03:00:00 "$filter_excision_snps" "$output_dir/CommonVars/refined_common_vars" "$param_file" "$cv_dict_filepath" "$exon_file" "$common_var_genes"
 echo "Finished filtering excision snps."
-
-# combine the data
-
 
 # script to generate text files that we'll use to filter vcfs (which we'll then input into EXCAVATE)
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
@@ -89,25 +86,15 @@ qsub -t 1-"$num_genes_w_guides" -l mem_free=3G -l h_rt=02:00:00 -sync y "$guide_
 echo "Finished filtering vcfs based on valid guides."
 
 # script to calculate number of heterozygous individuals that will be hit by pairs of snps (also runs greedy algorithm)
-het_combos_script="/wynton/protected/home/capra/gramey02/ConklinCollab/scripts/pipeline_scripts/het_combos.sh"
+het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
 filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
 echo "Started capturing heterozygote excision information..."
 echo $exon_file
-qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y $het_combos_script "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
+qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
 echo "Finished capturing heterozygote excision information."
-
-# script to combine the individual gene het information into a single dictionary
-combine_data_script="/wynton/protected/home/capra/gramey02/ConklinCollab/scripts/pipeline_scripts/combine_data.py"
-heterozygote_directory="$output_dir/excavate/het_individuals/"
-python3 $combine_data_script --heterozygote_directory $heterozygote_directory
 
 # script to get the number of individuals haplotype-specific guides per gene
 get_guide_info="$project_root/scripts/get_guides/excision_guides.sh"
 echo "Calculating number of guides to target heterozygotes..."
 qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=03:00:00 -sync y "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
 echo "Finished calculating number of guides."
-
-# script to combine the haplotype-specific guide information into a single file across genes
-combine_data_script2="/wynton/protected/home/capra/gramey02/ConklinCollab/scripts/pipeline_scripts/combine_files_excision_guides.py"
-guide_info_directory="$output_dir/excavate/guide_numbers"
-python3 $combine_data_script2 --guide_info_filepath $guide_info_directory
