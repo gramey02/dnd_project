@@ -24,13 +24,12 @@ common_vars_pos=$output_dir"/excavate/CommonVar_locs/${cur_gene}_CommonVar_locs.
 # filter the vcf on the current chromosome accordingly to these variants
 output_vcf=$output_dir"/excavate/input_vcfs/${cur_gene}_CommonVar_filtered.vcf.gz"
 # assign biallelic snp file based on current chromosome
-biallelic_snps="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_snps/TGP_chr${cur_chrom}_biallelicSNPs.vcf.gz"
+biallelic_snps="$BIALLELIC_SNPS_DIR/TGP_chr${cur_chrom}_biallelicSNPs.vcf.gz"
 
 # run filtering
 bcftools view -T $common_vars_pos $biallelic_snps -Oz -o $output_vcf
 # create index file
 bcftools index -t $output_vcf
-
 
 
 

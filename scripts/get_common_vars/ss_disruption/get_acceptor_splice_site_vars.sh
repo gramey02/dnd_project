@@ -18,6 +18,7 @@ script="$script_dir/get_acceptor_splice_site_vars.py"
 # Run the script below
 python3 "$script" --exon_file "$exon_file" \
   --af_limit "$AF_LIMIT" \
+  --af_file_dir "$AF_FILE_DIR" \
   --editing_window_size "$EDITING_WINDOW_SIZE" \
   --acceptor_snp_region "$ACCEPTOR_SNP_REGION" \
   --output_dir "$output_dir"

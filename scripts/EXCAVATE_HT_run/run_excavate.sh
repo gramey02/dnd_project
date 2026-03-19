@@ -36,5 +36,5 @@ fi
 
 
 # run excavate for each gene below
-excavate_script="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_PAMsites/excavate/main.py"
+excavate_script="$EXCAVATE_SCRIPT"
 python3 $excavate_script generate $common_var_vcf population $chrom_fasta $ref_genome_fasta $gene_coords --cas SpCas9 --summary -o $output_files

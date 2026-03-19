@@ -27,7 +27,7 @@ chrom_set="$resolved_output_base$RUN_NAME/chromosomes/chrom_set.txt"
 chrom=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' "$chrom_set")
 echo "$chrom"
 # get the file that contains the biallelic snps on the current chromosome
-af_file="/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_afs/TGP_chr${chrom}_afs.txt"
+af_file="$AF_FILE_DIR/TGP_chr${chrom}_afs.txt"
 
 # run the indel script
 script="$script_dir/get_common_vars.py"

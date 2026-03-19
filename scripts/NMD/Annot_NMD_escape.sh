@@ -21,4 +21,5 @@ python3 "$script" --exon_file "$EXON_FILE_FOR_ANALYSIS" \
   --penultimate_rule "$PENULTIMATE_RULE" \
   --cds_rule "$CDS_RULE" \
   --exon_length_rule "$EXON_LENGTH_RULE" \
+  --af_file_dir "$AF_FILE_DIR" \
   --output_dir "$output_dir"

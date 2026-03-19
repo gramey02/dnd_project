@@ -21,6 +21,7 @@ python3 "$script" --cpg_file "$CPG_FILE" \
   --promoter_dd "$PROMOTER_DD" \
   --output_dir "$output_dir" \
   --af_limit "$AF_LIMIT" \
+  --af_file_dir "$AF_FILE_DIR" \
   --gc_threshold "$GC_THRESH" \
   --use_islands "$USE_ISLANDS" \
   --ref_genome_fasta "$REF_GENOME_FASTA"

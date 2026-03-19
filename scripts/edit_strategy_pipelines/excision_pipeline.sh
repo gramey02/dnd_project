@@ -53,7 +53,7 @@ echo "Finished filtering excision snps."
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
 echo "Started generating common var loc files..."
 cv_dict_filepath=$output_dir"/CommonVars/CommonVars_ALL_dict.pkl"
-python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir" --edit_strat "excision"
+python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir" --af_file_dir "$AF_FILE_DIR" --edit_strat "excision"
 num_common_var_genes=$(ls -1 $output_dir"/excavate/CommonVar_locs" | wc -l)
 echo "Finished generating common var loc files."
 

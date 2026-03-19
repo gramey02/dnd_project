@@ -112,7 +112,7 @@ def main():
     # note where each gene is expressed
     transcripts_to_keep=[]
     prop_transcripts_lost_per_gene = []
-    tissue_mappings=pd.read_csv('/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/transcript_tpm/tissue_mappings.csv',index_col=0)
+    tissue_mappings=pd.read_csv('/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/transcript_tpm/tissue_mappings.csv',index_col=0)
     tissue_mapping_dict=dict(zip(tissue_mappings['gene_underscored_tissue'],tissue_mappings['transcript_space_tissue']))
     for gene in prop_df.gene.unique():
         noV_gene = gene.split('.')[0] # get the gene name without the decimal version attached

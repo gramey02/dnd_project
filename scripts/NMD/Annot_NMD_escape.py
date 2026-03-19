@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument('--penultimate_rule', type = int, required = True, help = 'Number of bases to consider at end of penultimate exon for escaping NMD.')
     parser.add_argument('--cds_rule', type = int, required = True, help = 'Number of bases to consider downstream of coding start site for escaping NMD.')
     parser.add_argument('--exon_length_rule', type=int, required=True, help='Exon length rule--if a var falls in an exon longer than this, NMD will not be induced.')
+    parser.add_argument('--af_file_dir', type=str, required=True, help="Directory containing TGP_chr*_afs.txt files.")
     parser.add_argument('--output_dir', type=str,required=True, help='Output directory.')
     args = parser.parse_args()
     return args
@@ -29,6 +30,7 @@ def main():
     penultimate_rule=args.penultimate_rule
     cds_rule=args.cds_rule
     exon_length_rule=args.exon_length_rule
+    af_file_dir=args.af_file_dir
     output_dir=args.output_dir
 
     # note the NMD escape rules we have to be aware of
@@ -249,7 +251,7 @@ def main():
     vcf_dict={}
     chroms = exon_df.chromosome_name.unique()
     for chrom in chroms:
-        af_filename = '/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_afs/TGP_chr' + chrom + '_afs.txt'
+        af_filename = os.path.join(af_file_dir, 'TGP_chr' + chrom + '_afs.txt')
         cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
         vcf_dict[chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt']]
 

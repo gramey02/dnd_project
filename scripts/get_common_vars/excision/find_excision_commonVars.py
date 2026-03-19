@@ -12,6 +12,7 @@ def parse_args():
     parser.add_argument('--output_dir', type = str, required = True, help = 'Output directory to save files to.')
     parser.add_argument('--exon_file',type=str,required=True,help="Filename for list of chromosomes and genes of interest.")
     parser.add_argument('--af_limit',type=float,required=True,help="Allele frequency threshold.")
+    parser.add_argument('--af_file_dir', type=str, required=True, help="Directory containing TGP_chr*_afs.txt files.")
     parser.add_argument('--gene_info', type=str,required=True, help="file to the excision windows for each gene.")
     parser.add_argument('--nearby_gene_filter', type=str,required=True, help="Boolean to tell us if excision windows were filtered based on other genes in the window.")
     args = parser.parse_args()
@@ -27,6 +28,7 @@ def main():
     output_dir=args.output_dir
     exon_file=args.exon_file
     af_limit=args.af_limit
+    af_file_dir=args.af_file_dir
     gene_df=pd.read_csv(args.gene_info, sep='\t')
     nearby_gene_filter=args.nearby_gene_filter
 
@@ -38,7 +40,7 @@ def main():
     vcf_dict={}
     chroms = gene_df.chrom.unique()
     for chrom in chroms:
-        af_filename = '/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_afs/TGP_chr' + str(chrom) + '_afs.txt'
+        af_filename = os.path.join(af_file_dir, 'TGP_chr' + str(chrom) + '_afs.txt')
         cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
         cur_chrom_TGP_afs=cur_chrom_TGP_afs[(cur_chrom_TGP_afs.af>=af_limit) & (cur_chrom_TGP_afs.af<=1-af_limit)]
         # get a list of common variant positions in and around the gene

@@ -47,6 +47,7 @@ def parse_args():
     parser.add_argument('--promoter_dd', type = int, required = True, help = 'Distance downstream of transcription start site that promoter begins at.')
     parser.add_argument('--output_dir', type=str, required=True, help='Output directory to save information to.')
     parser.add_argument('--af_limit', type=float, required=True, help="Allele frequency limit.")
+    parser.add_argument('--af_file_dir', type=str, required=True, help="Directory containing TGP_chr*_afs.txt files.")
     parser.add_argument('--gc_threshold', type=float, required=False, help='GC content threshold to filter promoters by.')
     parser.add_argument('--use_islands', type=str,required=True, help='Boolean that tells the script whether to filter promoter regions by overlap with a CpG island or by average GC threshold of the promoter region')
     parser.add_argument('--ref_genome_fasta', type=str, required=True, help='Reference genome fasta file path.')
@@ -63,6 +64,7 @@ def main():
     promoter_dd = args.promoter_dd
     output_dir=args.output_dir
     af_limit=args.af_limit
+    af_file_dir=args.af_file_dir
     gc_thresh=args.gc_threshold
     use_islands=args.use_islands
     ref_genome_fasta=args.ref_genome_fasta
@@ -232,7 +234,7 @@ def main():
     vcf_dict={}
     chroms = list(set(gene_chrom_map.values()))
     for chrom in chroms:
-        af_filename = '/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_afs/TGP_chr' + chrom + '_afs.txt'
+        af_filename = os.path.join(af_file_dir, 'TGP_chr' + chrom + '_afs.txt')
         cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
         cur_chrom_TGP_afs=cur_chrom_TGP_afs[(cur_chrom_TGP_afs.af>=af_limit) & (cur_chrom_TGP_afs.af<=1-af_limit)]
         # get a list of common variant positions in and around the gene

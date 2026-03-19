@@ -12,6 +12,7 @@ def main():
     def parse_args():
         parser = argparse.ArgumentParser()
         parser.add_argument('--af_limit', type=float, required = True, help = "Allele frequency threshold.")
+        parser.add_argument('--af_file_dir', type=str, required=True, help="Directory containing TGP_chr*_afs.txt files.")
         parser.add_argument('--exon_file', type=str, required = True, help = "Exon_information file.")
         parser.add_argument('--acceptor_snp_region', type=str, required = True, help = "Window relative to exon start in which to look for snp. E.g., '3-21'.")
         # parser.add_argument('--donor_snp_region', type=str, required = True, help="Window relative to exon start in which to look for snp. E.g., '4-21'.")
@@ -23,6 +24,7 @@ def main():
     # parse args from input
     args=parse_args()
     af_limit=args.af_limit
+    af_file_dir=args.af_file_dir
     exon_file=args.exon_file
     editing_window_size=args.editing_window_size
     # donor_snp_region = args.donor_snp_region
@@ -218,7 +220,7 @@ def main():
     vcf_dict={}
     chroms = pc.chromosome_name.unique()
     for chrom in chroms:
-        af_filename = '/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_afs/TGP_chr' + str(chrom) + '_afs.txt'
+        af_filename = os.path.join(af_file_dir, 'TGP_chr' + str(chrom) + '_afs.txt')
         cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
         cur_chrom_TGP_afs = cur_chrom_TGP_afs[(cur_chrom_TGP_afs.af>=af_limit) & (cur_chrom_TGP_afs.af<=1-af_limit)] # filter to af threshold
         vcf_dict[chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt', 'af']]
