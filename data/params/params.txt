@@ -13,7 +13,7 @@ TRANSCRIPT_TPM_FILE="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_rela
 SAMPLE_ATTRIBUTES_FILE="/wynton/group/capra/data/GTEx/v10/2025-05-06/metadata/GTEx_Analysis_v10_Annotations_SampleAttributesDS.txt" # tells us the tissues that each sample ID belongs to
 GENE_MEDIAN_TPMS_FILE="/wynton/group/capra/data/GTEx/v10/2025-05-06/rna-seq/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
 
-ORIGINAL_EXON_FILE="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_11_13/dHS_exonInfo_2025_11_13.csv"
+ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
 #ORIGINAL_EXON_FILE="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/pipeline_results/RUN_12_19_25/filtered_transcripts/filtered_exon_info_DCC_ZIC1.csv"
 
 
@@ -35,7 +35,7 @@ PROMOTER_DD=500 # int: downstream distance of transcription start site to look a
 INTERSECTION=25 # int: minimum acceptable intersection size to consider a region overlapping with a CpG Island
 USE_ISLANDS="False" # boolean: whether or not CpG Island overlap should be used to filter promoter regions
 GC_THRESH=30 # int: minimum percetnage threshold of GC content that a promoter should meet to be considered for downstream CRISPRoff or other analyses
-CPG_FILE="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/methylation/CpG_islands_noHeader.txt"
+CPG_FILE="data/cpg_islands/CpG_islands_noHeader.txt"
 
 # params for base editing stategies
 EDITING_WINDOW_SIZE=4 # int: editing window size of base editors (e.g., ABEs, CBEs)
@@ -44,19 +44,19 @@ ACCEPTOR_SNP_REGION="4-21" # str: will be parsed in subsequent files. Window in 
 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
 CHROM_SET='/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/chromosomes.txt' # str: set of chromosomes of interest in .txt file format
-AF_FILE_DIR="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_afs" # str: directory containing TGP_chr*_afs.txt files
-BIALLELIC_SNPS_DIR="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/vcfs/biallelic_snps" # str: directory containing TGP_chr*_biallelicSNPs.vcf.gz files
+AF_FILE_DIR="data/biallelic_afs" # str: directory containing TGP_chr*_afs.txt files
+BIALLELIC_SNPS_DIR="data/biallelic_vcfs" # str: directory containing TGP_chr*_biallelicSNPs.vcf.gz files
 PHASED_1000G_VCF_DIR="/wynton/group/capra/data/wynton_databases/1000_genomes/release/20190312_biallelic_SNV_and_INDEL" # str: directory containing ALL.chr*.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz files
 
 # params for running excavate
-REF_GENOME_FASTA="/wynton/group/capra/data/hg38_fasta/2022-03-14/filtered_hg38.fa" # str: filepath for human reference GENOME
-CHROM_FASTA_FILEPATH="/wynton/group/capra/data/hg38_fasta/2022-03-14/" # str: filepath where fastas for specific chromosomes live
+REF_GENOME_FASTA="data/reference_genomes/filtered_hg38.fa" # str: filepath for human reference GENOME
+CHROM_FASTA_FILEPATH="data/reference_genomes/" # str: filepath where fastas for specific chromosomes live
 EXCAVATE_SCRIPT="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_PAMsites/excavate/main.py" # str: filepath to the EXCAVATE entrypoint
 
 # params for excision pipeline
 UPSTREAM_EXCISION_DIST=50000
 DOWNSTREAM_EXCISION_DIST=50000
-GENE_BODY_FILE="/wynton/group/capra/data/GENCODE/2025-10-03/gencode.v49.annotation.gtf"
+GENE_BODY_FILE="/wynton/home/capra/gramey02/dnd_project/data/GENCODE/gencode.v49.annotation.gtf"
 EXCISE_ENTIRE_GENE=0 # boolean: if true, pipeline considers only genetic variants that flank the entire gene for excision, rather than indivdual exons
 NUM_SAMPLES=2548 # int: number of samples in a population. Commonly the 1000Genomes population, that we're determining number of heterozygotes in
 FILTER_OUT_NEARBY_GENES=1 # boolean: if true, pipeline restricts excision window by removing nearby protein coding gene coordinates from excision window

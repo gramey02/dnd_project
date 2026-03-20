@@ -6,12 +6,18 @@
 #$ -e /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/err/filter_transcripts.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd "$script_dir/../.." && pwd)"
 
 # parse input arguments
 output_dir="$1"
 param_file="$2"
 source "$param_file"
 cur_exon_file="$ORIGINAL_EXON_FILE"
+
+# Resolve repo-relative paths from params.txt against the project root.
+if [[ "$cur_exon_file" != /* ]]; then
+    cur_exon_file="$(cd "$project_root" && realpath "$cur_exon_file")"
+fi
 
 # run script below
 echo "Filtering transcripts by expression proportion..."
