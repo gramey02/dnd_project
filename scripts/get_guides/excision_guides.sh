@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N excision_setup
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/exicision_setup2.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/excision_setup2.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
@@ -52,8 +49,9 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 # valid excision pairs
 valid_pairs_fp="$resolved_output_base$RUN_NAME/excision/CommonVars/valid_snp_pairs"
 
-# run array job prioritizing non-excision gRNAs for each gene
+# run locally for each gene
 shell_script="$script_dir/excision_guides_array_setup.sh"
-#gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $unique_genes_file)
 output_dir="$resolved_output_base$RUN_NAME"
-qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=24:00:00 "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$valid_pairs_fp"
+for ((task_id=1; task_id<=num_unique_genes; task_id++)); do
+    bash "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$valid_pairs_fp" "$task_id"
+done

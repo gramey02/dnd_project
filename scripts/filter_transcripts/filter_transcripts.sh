@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N filter_transcripts
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/out/filter_transcripts.out
-#$ -e /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/err/filter_transcripts.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"

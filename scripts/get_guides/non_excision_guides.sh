@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N non_excision_setup
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/non_exicision_setup.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/non_excision_setup.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
@@ -53,8 +50,9 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 # set up variable to run all strategies together or separately
 all_strats_together="False"
 
-# run array job prioritizing non-excision gRNAs for each gene
+# run locally for each gene
 shell_script="$script_dir/non_excision_guides_array_setup.sh"
-#gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $unique_genes_file)
 output_dir="$resolved_output_base$RUN_NAME"
-qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=5:00:00 "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together"
+for ((task_id=1; task_id<=num_unique_genes; task_id++)); do
+    bash "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together" "$task_id"
+done

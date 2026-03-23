@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N get_targeted_hets
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/get_targeted_hets.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/get_targeted_hets.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
@@ -45,5 +42,4 @@ python3 "$script" --output_dir "$output_dir" \
     --num_strats "$num_strats" \
     --strats "${filtered[@]}" \
     --run_dir "$resolved_output_base$RUN_NAME"
-
 

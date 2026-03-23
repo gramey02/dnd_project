@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N Annot_NMD_escape
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/Annot_NMD_escape.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/Annot_NMD_escape.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

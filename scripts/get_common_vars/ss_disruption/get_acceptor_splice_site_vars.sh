@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N get_acceptor_splice_site_vars
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/get_acceptor_splice_site_vars.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/get_acceptor_splice_site_vars.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

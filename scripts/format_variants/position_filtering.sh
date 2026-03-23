@@ -1,30 +1,35 @@
 #!/bin/bash
-#$ -N position_filtering
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o ~/ConklinCollab/scripts/out/position_filtering.out
-#$ -e ~/ConklinCollab/scripts/err/position_filtering.err
 
-module load CBI bcftools
+set -euo pipefail
+
+if command -v module >/dev/null 2>&1; then
+    module load CBI bcftools
+fi
 
 # load input arguments
 output_dir=$1
 param_file=$2
 source $param_file
 gene_info=$3
+task_id="${4:-${SGE_TASK_ID:-}}"
 
 
 # separate out inputs and outputs
-chrom=$(awk -v row=$SGE_TASK_ID 'NR == row {print $2}' $gene_info)
-gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $gene_info)
+if [[ -z "$task_id" ]]; then
+    echo "Error: provide a gene row index as argument 4." >&2
+    exit 1
+fi
+
+chrom=$(awk -v row="$task_id" 'NR == row {print $2}' "$gene_info")
+gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$gene_info")
 positions=$output_dir"/excavate/Guide_locs/${gene}_Guide_locs.txt"
 input_vcf="$PHASED_1000G_VCF_DIR/ALL.chr${chrom}.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz"
 filtered_vcf=$output_dir"/excavate/Guide_filtered_vcfs/${gene}_guide_filtered.vcf.gz"
 
 # filter with bcftools
-bcftools view -T $positions $input_vcf -Oz -o $filtered_vcf
+bcftools view -T "$positions" "$input_vcf" -Oz -o "$filtered_vcf"
 # unzip so you can run analysis on the file later
-gzip -dk $filtered_vcf
+gzip -dk "$filtered_vcf"
 
 
 

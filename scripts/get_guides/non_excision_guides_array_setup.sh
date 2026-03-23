@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N non_excision_guides
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/non_exicision_guides.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/non_excision_guides.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -13,9 +10,15 @@ unique_genes_file="$2"
 param_file="$3"
 source "$param_file"
 all_strats_together="$4"
+task_id="${5:-${SGE_TASK_ID:-}}"
 
 # set up per job gene
-gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' "$unique_genes_file")
+if [[ -z "$task_id" ]]; then
+    echo "Error: provide a gene row index as argument 5." >&2
+    exit 1
+fi
+
+gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$unique_genes_file")
 echo "$gene"
 
 gRNA_script="$script_dir/non_excision_guides.py"

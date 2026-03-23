@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N run_edit_strategy_pipeline
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/run_edit_strategy_pipeline.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/run_edit_strategy_pipeline.err
+
+set -euo pipefail
 
 # Resolve paths relative to this script rather than a fixed project location.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,7 +39,7 @@ if (( $FILTER_TRANSCRIPTS == 1 )); then
     mkdir -p "$output_dir/filtered_transcripts" # mkdir -p "$output_dir/filtered_transcripts/expression_filtered"
     # run transcript filtering
     filter_script="$script_dir/filter_transcripts/filter_transcripts.sh" # include this in the params file eventually
-    qsub -cwd -l mem_free=1G -l h_rt=01:00:00 -sync y "$filter_script" "$output_dir" "$new_param_file"
+    bash "$filter_script" "$output_dir" "$new_param_file"
 else
     # update
     printf 'EXON_FILE_FOR_ANALYSIS="%s"\n' "$ORIGINAL_EXON_FILE" >> "$new_param_file" # append KEY=VALUE
@@ -51,37 +48,12 @@ fi
 # now call shell scripts to run sub-pipelines for each of the editing strategies and pass in the set parameters
 # will parallelize these so they can run at the same time
 
-# # indel pipeline
-# echo "Running indel pipeline..."
-# indel_pipeline="$script_dir/edit_strategy_pipelines/indel_pipeline.sh"
-# indel_output_dir="$output_dir/indels"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$indel_pipeline" "$indel_output_dir" "$new_param_file"
-# echo "Finished running indel pipeline."
-
-# # crisproff pipeline
-# echo "Running crisproff pipeline..."
-# crisproff_pipeline="$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh"
-# crisproff_output_dir="$output_dir/CRISPRoff"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$crisproff_pipeline" "$crisproff_output_dir" "$new_param_file"
-# echo "Finished running crisproff pipeline."
-
-# # acceptor base edits pipeline
-# echo "Running acceptor base edits pipeline..."
-# acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
-# acceptor_output_dir="$output_dir/acceptor_base_edits"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
-# echo "Finished running acceptor pipeline."
-
-# # donor base edits pipeline
-# echo "Running donor base edits pipeline..."
-# donor_pipeline="$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh"
-# donor_output_dir="$output_dir/donor_base_edits"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$donor_pipeline" "$donor_output_dir" "$new_param_file"
-# echo "Finished running donor pipeline."
+# Additional editing-strategy pipelines can be invoked here with plain
+# `bash "$pipeline_script" "$strategy_output_dir" "$new_param_file"` calls.
 
 # excision pipeline
 echo "Running excision pipeline..."
 excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
 excision_output_dir="$output_dir/excision"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$excision_pipeline" "$excision_output_dir" "$new_param_file"
+bash "$excision_pipeline" "$excision_output_dir" "$new_param_file"
 echo "Finished running excision pipeline."

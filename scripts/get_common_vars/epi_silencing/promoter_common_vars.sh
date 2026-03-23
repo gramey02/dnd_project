@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N promoter_common_vars
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/promoter_common_vars.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/promoter_common_vars.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N het_combos
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/out/het_combos.out
-#$ -e /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/err/het_combos.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -14,8 +11,14 @@ source "$param_file"
 genes_w_guides="$3"
 filtered_vcf_dir="$4"
 exon_file="$5"
+task_id="${6:-${SGE_TASK_ID:-}}"
 
-gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' "$genes_w_guides")
+if [[ -z "$task_id" ]]; then
+    echo "Error: provide a gene row index as argument 6." >&2
+    exit 1
+fi
+
+gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$genes_w_guides")
 script="$script_dir/het_combos.py"
 
 python3 "$script" --output_dir "$output_dir" \

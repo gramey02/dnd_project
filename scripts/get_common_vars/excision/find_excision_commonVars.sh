@@ -1,9 +1,6 @@
 #!/bin/bash
-#$ -N find_excision_commonVars
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/home/capra/gramey02/ConklinCollab/scripts/out/find_excision_commonVars.out
-#$ -e /wynton/home/capra/gramey02/ConklinCollab/scripts/err/find_excision_commonVars.err
+
+set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
