@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -49,7 +50,8 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 # valid excision pairs
 valid_pairs_fp="$resolved_output_base$RUN_NAME/excision/CommonVars/valid_snp_pairs"
 
-# run locally for each gene
+# This replaces the old array-job submission by looping over each gene row
+# and calling the worker script once per row.
 shell_script="$script_dir/excision_guides_array_setup.sh"
 output_dir="$resolved_output_base$RUN_NAME"
 for ((task_id=1; task_id<=num_unique_genes; task_id++)); do

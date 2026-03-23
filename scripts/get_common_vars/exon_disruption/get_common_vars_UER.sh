@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,6 +11,8 @@ source "$param_file"
 exon_file="$4"
 output_dir="$1"
 total_num_chroms="$3"
+# Local replacement for SGE array index: callers now pass the row number
+# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
 task_id="${5:-${SGE_TASK_ID:-}}"
 
 if [[ "$OUTPUT_DIR" = /* ]]; then
@@ -26,6 +29,7 @@ if [[ -z "$task_id" ]]; then
   echo "Error: provide a chromosome row index as argument 5." >&2
   exit 1
 fi
+# Pick the chromosome assigned to this one local loop iteration.
 chrom=$(awk -v row="$task_id" 'NR == row {print $1}' "$chrom_set")
 echo "$chrom"
 # get the file that contains the biallelic snps on the current chromosome

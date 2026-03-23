@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
+# Load cluster modules only if the current environment supports `module`.
 if command -v module >/dev/null 2>&1; then
     module load CBI bcftools
 fi
@@ -11,6 +13,8 @@ output_dir=$1
 param_file=$2
 source $param_file
 gene_info=$3
+# Local replacement for SGE array index: callers now pass the row number
+# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
 task_id="${4:-${SGE_TASK_ID:-}}"
 
 
@@ -20,6 +24,7 @@ if [[ -z "$task_id" ]]; then
     exit 1
 fi
 
+# Select the gene/chromosome pair assigned to this one local loop iteration.
 chrom=$(awk -v row="$task_id" 'NR == row {print $2}' "$gene_info")
 gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$gene_info")
 positions=$output_dir"/excavate/Guide_locs/${gene}_Guide_locs.txt"

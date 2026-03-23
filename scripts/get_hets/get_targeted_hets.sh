@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,4 +43,3 @@ python3 "$script" --output_dir "$output_dir" \
     --num_strats "$num_strats" \
     --strats "${filtered[@]}" \
     --run_dir "$resolved_output_base$RUN_NAME"
-

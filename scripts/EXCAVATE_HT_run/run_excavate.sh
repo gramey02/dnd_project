@@ -1,10 +1,11 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
 # excavate runs very quickly, so can loop through genes for now, but in the future could also be set up as an array job
 
-# activate excavate environment
+# Activate toolchains only when the current environment supports them.
 if command -v module >/dev/null 2>&1; then
     module load CBI miniforge3 bcftools
 fi
@@ -18,6 +19,8 @@ output_dir=$1
 param_file=$2
 source $param_file
 gene_info=$3
+# Local replacement for SGE array index: callers now pass the row number
+# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
 task_id="${4:-${SGE_TASK_ID:-}}"
 
 # set variables for inputs and outputs
@@ -27,6 +30,7 @@ if [[ -z "$task_id" ]]; then
     exit 1
 fi
 
+# Resolve the one gene/chromosome record assigned to this local iteration.
 gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$gene_info")
 chrom=$(awk -v row="$task_id" 'NR == row {print $2}' "$gene_info")
 gene_coords=$(awk -v row="$task_id" 'NR == row {print $5}' "$gene_info")

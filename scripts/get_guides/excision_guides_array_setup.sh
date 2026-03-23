@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,6 +10,8 @@ output_dir="$1"
 unique_genes_file="$2"
 param_file="$3"
 valid_pairs_fp="$4"
+# Local replacement for SGE array index: callers now pass the row number
+# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
 task_id="${5:-${SGE_TASK_ID:-}}"
 source "$param_file"
 
@@ -23,7 +26,7 @@ if [[ -z "$task_id" ]]; then
     exit 1
 fi
 
-# set up per job gene
+# Resolve the one gene assigned to this local loop iteration.
 gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$unique_genes_file")
 vcf_dir="$resolved_output_base$RUN_NAME/excision/excavate/Guide_filtered_vcfs" # "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/downsampled_vcfs"
 

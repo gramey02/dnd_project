@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
+# Load cluster modules only if the current environment supports `module`.
 if command -v module >/dev/null 2>&1; then
     module load CBI bcftools
 fi
@@ -11,9 +13,11 @@ output_dir=$1
 param_file=$2
 source $param_file
 gene_info=$3
+# Local replacement for SGE array index: callers now pass the row number
+# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
 task_id="${4:-${SGE_TASK_ID:-}}"
 
-# set up to run as an array job
+# Resolve exactly one gene/chromosome pair per local loop iteration.
 if [[ -z "$task_id" ]]; then
     echo "Error: provide a gene row index as argument 4." >&2
     exit 1
@@ -35,5 +39,4 @@ biallelic_snps="$BIALLELIC_SNPS_DIR/TGP_chr${cur_chrom}_biallelicSNPs.vcf.gz"
 bcftools view -T "$common_vars_pos" "$biallelic_snps" -Oz -o "$output_vcf"
 # create index file
 bcftools index -t "$output_vcf"
-
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,6 +17,8 @@ else
   resolved_output_base="$project_root/$OUTPUT_DIR"
 fi
 
+# Local replacement for SGE array jobs: call the target script once for each
+# 1-based row index that would previously have come from SGE_TASK_ID.
 run_indexed_jobs() {
   local count="$1"
   shift
