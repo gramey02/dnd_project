@@ -33,9 +33,6 @@ run_indexed_jobs() {
 }
 
 # set exon file
-#exon_file=$EXON_FILE_FOR_ANALYSIS
-# exon_file="/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/dHS_exonInfo_GTExCurated_transcripts_TPM1.0_ExprProp0.01_2025_04_22.csv"
-#exon_file="/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/donor_test_exon.csv"
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # script to generate appropriate coordinates to look for excision variants in

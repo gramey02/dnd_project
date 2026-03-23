@@ -1,9 +1,7 @@
 #!/bin/bash
-#$ -N make_dirs
-#$ -M Grace.Ramey@ucsf.edu
-#$ -cwd
-#$ -o /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/out/make_dirs.out
-#$ -e /wynton/protected/home/capra/gramey02/ConklinCollab/scripts/err/make_dirs.err
+
+# Fail fast on errors, undefined variables, and pipeline failures.
+set -euo pipefail
 
 # script to create directories for the editing pipeline results
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

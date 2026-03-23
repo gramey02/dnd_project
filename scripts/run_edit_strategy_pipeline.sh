@@ -23,6 +23,13 @@ mkdir_if_missing() {
   mkdir -p "$1"
 }
 
+# Run a pipeline script locally with the output directory and params file.
+run_pipeline() {
+  local pipeline_script="$1"
+  local strategy_output_dir="$2"
+  bash "$pipeline_script" "$strategy_output_dir" "$new_param_file"
+}
+
 # # make output directory for the run
 output_dir="${resolved_output_base}${RUN_NAME}"
 mkdir_if_missing "$output_dir"
@@ -49,12 +56,37 @@ fi
 # now call shell scripts to run sub-pipelines for each of the editing strategies and pass in the set parameters
 # will parallelize these so they can run at the same time
 
-# Additional editing-strategy pipelines can be invoked here with plain
-# `bash "$pipeline_script" "$strategy_output_dir" "$new_param_file"` calls.
+# indel pipeline
+echo "Running indel pipeline..."
+indel_pipeline="$script_dir/edit_strategy_pipelines/indel_pipeline.sh"
+indel_output_dir="$output_dir/indels"
+run_pipeline "$indel_pipeline" "$indel_output_dir"
+echo "Finished running indel pipeline."
+
+# crisproff pipeline
+echo "Running crisproff pipeline..."
+crisproff_pipeline="$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh"
+crisproff_output_dir="$output_dir/CRISPRoff"
+run_pipeline "$crisproff_pipeline" "$crisproff_output_dir"
+echo "Finished running crisproff pipeline."
+
+# acceptor base edits pipeline
+echo "Running acceptor base edits pipeline..."
+acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
+acceptor_output_dir="$output_dir/acceptor_base_edits"
+run_pipeline "$acceptor_pipeline" "$acceptor_output_dir"
+echo "Finished running acceptor pipeline."
+
+# donor base edits pipeline
+echo "Running donor base edits pipeline..."
+donor_pipeline="$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh"
+donor_output_dir="$output_dir/donor_base_edits"
+run_pipeline "$donor_pipeline" "$donor_output_dir"
+echo "Finished running donor pipeline."
 
 # excision pipeline
 echo "Running excision pipeline..."
 excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
 excision_output_dir="$output_dir/excision"
-bash "$excision_pipeline" "$excision_output_dir" "$new_param_file"
+run_pipeline "$excision_pipeline" "$excision_output_dir"
 echo "Finished running excision pipeline."

@@ -33,11 +33,6 @@ run_indexed_jobs() {
 }
 
 # find exon_file
-#exon_file=$EXON_FILE_FOR_ANALYSIS
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/test_exon.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/donor_test_exon.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/dHS_exonInfo_GTExCurated_transcripts_TPM1.0_ExprProp0.01_2025_04_22.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/retinal_filtered.csv"
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # get num chromosomes
@@ -77,8 +72,6 @@ run_excavate_script="$project_root/scripts/EXCAVATE_HT_run/run_excavate.sh"
 echo "Started running EXCAVATE..."
 run_indexed_jobs "$num_common_var_genes" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
-
-# script to generate relevant summary statistics & figures based on these regions and vars
 
 # generate text files for the valid guides so you can filter the vcfs accordingly
 generate_guide_textFiles="$project_root/scripts/format_variants/generate_guide_textFiles.py"

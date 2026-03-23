@@ -33,9 +33,6 @@ run_indexed_jobs() {
 }
 
 # find exon_file
-#exon_file=$EXON_FILE_FOR_ANALYSIS
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/test_exon.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/dHS_exonInfo_GTExCurated_transcripts_TPM1.0_ExprProp0.01_2025_04_22.csv"
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # get num chromosomes
@@ -57,20 +54,6 @@ bash "$NMD_script" "$output_dir" "$param_file" "$targetable_common_var_dict"
 echo "Finished running NMD analysis."
 common_var_genes=$output_dir"/excavate/input_metadata/excavate_run_metadata.txt"
 num_common_var_genes=$(wc -l < $common_var_genes) # get the number of genes that have common vars in them (from summary file)
-
-#--------------these are not necessary for indel pipeline, since the NMD pipeline takes care of vcf formatting--------------
-# # scripts to generate excavate input files
-# common_var_genes=$output_dir"/ubiq_region_CommonVars/CommonVars_VarNumOver0_summary_noIDX.txt"
-# awk -F'\t' '$2+0 > 0' $output_dir"/ubiq_region_CommonVars/CommonVars_ALL_summary_noIDX.txt" > $common_var_genes
-# num_common_var_genes=$(wc -l < $common_var_genes) # get the number of genes that have common vars in them (from summary file)
-
-# # script to generate text files that we'll use to filter vcfs (which we'll then input into EXCAVATE)
-# generate_variant_textFiles="/wynton/protected/home/capra/gramey02/ConklinCollab/scripts/DN_PAMsites/generate_variant_textFiles.py"
-# echo "Started generating common var loc files..."
-# cv_dict_filepath=$output_dir"/ubiq_region_CommonVars/CommonVars_ALL_dict.pkl"
-# python3 $generate_variant_textFiles --cv_dict_filepath $cv_dict_filepath --exon_file $exon_file --output_dir $output_dir
-# echo "Finished generating common var loc files."
-#------------------------------------------------------------------------------------------------------------------------------
 
 # script to filter vcfs accordingly
 excavate_vcf_creation="$project_root/scripts/format_variants/generate_filtered_vcfs.sh" # first we need to generate vcf.gz files for the genes that have variants in their ubiquitous exonic regions

@@ -33,10 +33,6 @@ run_indexed_jobs() {
 }
 
 # find exon_file
-#exon_file=$EXON_FILE_FOR_ANALYSIS
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/test_exon.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/test_exon_criproff.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/dHS_exonInfo_GTExCurated_transcripts_TPM1.0_ExprProp0.01_2025_04_22.csv"
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # get num chromosomes
@@ -49,8 +45,6 @@ promoter_common_vars="$project_root/scripts/get_common_vars/epi_silencing/promot
 echo "Started identifying ubiquitous promoter regions & common vars..."
 bash "$promoter_common_vars" "$output_dir" "$param_file" "$exon_file"
 echo "Finished identifiying ubiquitous promoter regions & common vars."
-
-# script to generate summary files & plots quantifying how this did
 
 # get number of genes that have common vars in promoter regions
 common_var_genes=$output_dir"/ubiq_region_CommonVars/CommonVars_VarNumOver0_summary_noIDX.txt"
@@ -76,8 +70,6 @@ run_excavate_script="$project_root/scripts/EXCAVATE_HT_run/run_excavate.sh"
 echo "Started running EXCAVATE..."
 run_indexed_jobs "$num_common_var_genes" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
-
-# script to generate relevant summary statistics & figures based on these regions and vars
 
 # generate text files for the valid guides so you can filter the vcfs accordingly
 generate_guide_textFiles="$project_root/scripts/format_variants/generate_guide_textFiles.py"
@@ -109,5 +101,3 @@ excavate_output_dir=$output_dir"/excavate/excavate_outputs"
 filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
 bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
 echo "Finished calculating number of guides."
-
-# # any other filtering criteria below

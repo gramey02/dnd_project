@@ -33,11 +33,6 @@ run_indexed_jobs() {
 }
 
 # find exon_file
-#exon_file=$EXON_FILE_FOR_ANALYSIS
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/test_exon.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/acceptor_exon_test.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/dHS_exonInfo_GTExCurated_transcripts_TPM1.0_ExprProp0.01_2025_04_22.csv"
-#exon_file="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/filtered_exon_info/retinal_filtered.csv"
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # get num chromosomes
@@ -51,8 +46,6 @@ echo "Started identifying ubiquitous acceptor regions & common vars..."
 bash "$acceptor_common_vars" "$output_dir" "$param_file" "$exon_file"
 echo "Finished identifiying ubiquitous acceptor regions & common vars."
 
-# script to generate summary files & plots quantifying how this did
-
 # get number of genes that have common vars in acceptor regions
 common_var_genes=$output_dir"/ubiq_region_CommonVars/CommonVars_VarNumOver0_summary_noIDX.txt"
 awk -F'\t' '$2+0 > 0' "$output_dir/ubiq_region_CommonVars/CommonVars_ALL_summary_noIDX.txt" > "$common_var_genes"
@@ -62,7 +55,7 @@ num_common_var_genes=$(wc -l < $common_var_genes) # get the number of genes that
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
 echo "Started generating common var loc files..."
 cv_dict_filepath=$output_dir"/ubiq_region_CommonVars/CommonVars_ALL_dict.pkl"
-python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir" --af_file_dir "$AF_FILE_DIR"
+python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir"
 echo "Finished generating common var loc files."
 
 # script to filter vcfs accordingly
@@ -77,8 +70,6 @@ run_excavate_script="$project_root/scripts/EXCAVATE_HT_run/run_excavate.sh"
 echo "Started running EXCAVATE..."
 run_indexed_jobs "$num_common_var_genes" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
-
-# script to generate relevant summary statistics & figures based on these regions and vars
 
 # generate text files for the valid guides so you can filter the vcfs accordingly
 generate_guide_textFiles="$project_root/scripts/format_variants/generate_guide_textFiles.py"
