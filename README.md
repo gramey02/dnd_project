@@ -10,7 +10,11 @@ git clone git@github.com:gramey02/dnd_project.git
 #or
 git clone https://github.com/gramey02/dnd_project.git
 
+### Set up environment
+
+
 ### Data downloads
+
 
 ## Running on an HPC
 
