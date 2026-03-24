@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N make_dirs
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o ../../logs/out/make_dirs.out
+#$ -e ../../logs/err/make_dirs.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
@@ -6,10 +11,12 @@ set -euo pipefail
 # script to create directories for the editing pipeline results
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
+execution_utils="$project_root/scripts/utils/execution_mode.sh"
 
 # load input argument that contains parameters for the run
 param_file="$1"
 source "$param_file"
+source "$execution_utils"
 
 if [[ "$OUTPUT_DIR" = /* ]]; then
   resolved_output_base="$OUTPUT_DIR"
@@ -36,6 +43,14 @@ mkdir_if_missing "$output_dir"
 for d in "${ALWAYS_TOPLEVEL[@]}"; do
   mkdir_if_missing "$output_dir/$d"
 done
+
+# Create HPC log directories at the run level when requested.
+run_mode="$(get_run_mode)"
+if [[ "$run_mode" == "hpc" ]]; then
+  mkdir_if_missing "$output_dir/logs"
+  mkdir_if_missing "$output_dir/logs/out"
+  mkdir_if_missing "$output_dir/logs/err"
+fi
 
 # ---- 2) Always make these INSIDE EVERY STRATEGY FOLDER
 # These are relative to: $output_dir/<strategy>/

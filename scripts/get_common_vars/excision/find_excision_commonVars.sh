@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N find_excision_commonVars
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/find_excision_commonVars.out
+#$ -e logs/err/find_excision_commonVars.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

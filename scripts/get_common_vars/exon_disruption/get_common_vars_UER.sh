@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N get_common_vars_UER
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o ../../../logs/out/get_common_vars_UER.out
+#$ -e ../../../logs/err/get_common_vars_UER.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

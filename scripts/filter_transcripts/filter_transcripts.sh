@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N filter_transcripts
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o ../../logs/out/filter_transcripts.out
+#$ -e ../../logs/err/filter_transcripts.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
@@ -31,18 +36,6 @@ python3 "$expr_filt_script" --transcript_tpm_file "$TRANSCRIPT_TPM_FILE" \
     --output_file "$output_dir/filtered_transcripts/filtered_exon_info.csv"
 echo "Finished filtering transcripts by expression proportion."
 cur_exon_file="$output_dir/filtered_transcripts/filtered_exon_info.csv"
-
-# # below, filter on tsl or canonical flags if true
-# if [[ $CANONICAL_TSL_FILTER == "True" ]]; then
-#     echo "Filtering transcripts by tsl and canonical flags..."
-#     canonical_tsl_filt_script="/wynton/protected/home/capra/gramey02/ConklinCollab/scripts/DN_CommonVars/filter_transcripts/filter_transcripts_tsl_canonical.py"
-#     python3 $canonical_tsl_filt_script --use_only_canonical $USE_ONLY_CANONICAL \
-#         --use_tsl_flag $USE_TSL_FLAG \
-#         --tsl_num $TSL_NUM \
-#         --exon_file $cur_exon_file \
-#         --output_file "$ouptut_dir/filtered_transcripts/tsl_canonical_filtered/exon_info.csv"
-#     cur_exon_file="$ouptut_dir/filtered_transcripts/tsl_canonical_filtered/exon_info.csv"
-# fi
 
 # add final filtered exon file to params file for future use
 final_exon_file="$cur_exon_file"

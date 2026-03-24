@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N position_filtering
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/position_filtering.out
+#$ -e logs/err/position_filtering.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

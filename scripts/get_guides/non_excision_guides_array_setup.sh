@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N non_excision_guides_array_setup
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/non_excision_guides_array_setup.out
+#$ -e logs/err/non_excision_guides_array_setup.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

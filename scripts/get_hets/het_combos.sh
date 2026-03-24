@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N het_combos
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/het_combos.out
+#$ -e logs/err/het_combos.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

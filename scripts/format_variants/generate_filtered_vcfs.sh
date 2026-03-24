@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N generate_filtered_vcfs
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/generate_filtered_vcfs.out
+#$ -e logs/err/generate_filtered_vcfs.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
@@ -39,4 +44,3 @@ biallelic_snps="$BIALLELIC_SNPS_DIR/TGP_chr${cur_chrom}_biallelicSNPs.vcf.gz"
 bcftools view -T "$common_vars_pos" "$biallelic_snps" -Oz -o "$output_vcf"
 # create index file
 bcftools index -t "$output_vcf"
-

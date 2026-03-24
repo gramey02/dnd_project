@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N run_guide_analysis
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/run_guide_analysis.out
+#$ -e logs/err/run_guide_analysis.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

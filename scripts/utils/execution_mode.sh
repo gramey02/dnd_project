@@ -1,20 +1,22 @@
 #!/bin/bash
+#$ -N execution_mode
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/execution_mode.out
+#$ -e logs/err/execution_mode.err
 
 set -euo pipefail
 
 get_run_mode() {
-    local run_mode="${RUN_MODE:-local}"
+    local run_mode="${RUN_MODE:-hpc}"
     run_mode="${run_mode,,}"
 
-    case "$run_mode" in
-        local|hpc)
-            printf '%s\n' "$run_mode"
-            ;;
-        *)
-            echo "Error: RUN_MODE must be 'local' or 'hpc', got '${RUN_MODE:-unset}'." >&2
-            return 1
-            ;;
-    esac
+    if [[ "$run_mode" != "hpc" ]]; then
+        echo "Error: RUN_MODE must be 'hpc', got '${RUN_MODE:-unset}'." >&2
+        return 1
+    fi
+
+    printf '%s\n' "$run_mode"
 }
 
 run_indexed_jobs() {
@@ -31,16 +33,8 @@ run_indexed_jobs() {
     local run_mode
     run_mode="$(get_run_mode)"
 
-    if [[ "$run_mode" == "local" ]]; then
-        local task_id
-        for ((task_id=1; task_id<=count; task_id++)); do
-            bash "$target_script" "$@" "$task_id"
-        done
-        return 0
-    fi
-
     if ! command -v qsub >/dev/null 2>&1; then
-        echo "Error: RUN_MODE is set to 'hpc' but 'qsub' is not available in this shell." >&2
+        echo "Error: RUN_MODE is 'hpc' but 'qsub' is not available in this shell." >&2
         return 1
     fi
 

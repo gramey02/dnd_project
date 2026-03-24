@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N run_excavate
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/run_excavate.out
+#$ -e logs/err/run_excavate.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

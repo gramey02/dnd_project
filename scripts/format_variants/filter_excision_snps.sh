@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N filter_excision_snps
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/filter_excision_snps.out
+#$ -e logs/err/filter_excision_snps.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

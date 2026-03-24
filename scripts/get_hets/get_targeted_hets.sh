@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N get_targeted_hets
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/get_targeted_hets.out
+#$ -e logs/err/get_targeted_hets.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

@@ -1,4 +1,9 @@
 #!/bin/bash
+#$ -N promoter_common_vars
+#$ -M Grace.Ramey@ucsf.edu
+#$ -cwd
+#$ -o logs/out/promoter_common_vars.out
+#$ -e logs/err/promoter_common_vars.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
