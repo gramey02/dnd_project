@@ -5,32 +5,19 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
+execution_utils="$project_root/scripts/utils/execution_mode.sh"
 
 # parse input arguments
 param_file="$2"
 source "$param_file"
 output_dir="$1"
+source "$execution_utils"
 
 if [[ "$OUTPUT_DIR" = /* ]]; then
   resolved_output_base="$OUTPUT_DIR"
 else
   resolved_output_base="$project_root/$OUTPUT_DIR"
 fi
-
-# Local replacement for SGE array jobs: call the target script once for each
-# 1-based row index that would previously have come from SGE_TASK_ID.
-run_indexed_jobs() {
-  local count="$1"
-  shift
-  if (( count <= 0 )); then
-    return 0
-  fi
-
-  local task_id
-  for ((task_id=1; task_id<=count; task_id++)); do
-    bash "$@" "$task_id"
-  done
-}
 
 # set exon file
 exon_file="$EXON_FILE_FOR_ANALYSIS"

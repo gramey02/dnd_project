@@ -5,15 +5,12 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
+execution_utils="$project_root/scripts/utils/execution_mode.sh"
 
-param_file="$project_root/data/params/params.txt"
+output_dir="$1"
+param_file="$2"
 source "$param_file"
-
-if [[ "$OUTPUT_DIR" = /* ]]; then
-  resolved_output_base="$OUTPUT_DIR"
-else
-  resolved_output_base="$project_root/$OUTPUT_DIR"
-fi
+source "$execution_utils"
 
 # make directory to hold info
 mkdir_if_missing() {
@@ -25,15 +22,15 @@ mkdir_if_missing() {
     echo "Directory '$d' created."
   fi
 }
-mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs"
-mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/metadata"
-mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/checkpoints"
-mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/results"
-mkdir_if_missing "$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/logs"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/metadata"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/checkpoints"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/results"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/logs"
 
 # merge the information on genes into one file
-BASE="$resolved_output_base$RUN_NAME"
-merged_fp="$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides.txt"
+BASE="$output_dir"
+merged_fp="$output_dir/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides.txt"
 
 > "$merged_fp"  # truncate/create file
 
@@ -44,17 +41,12 @@ for strat in indels CRISPRoff acceptor_base_edits donor_base_edits; do
 done
 
 # get the unique genes from the file
-unique_genes_file="$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/metadata/unique_genes_with_valid_guides_non_excision.txt"
+unique_genes_file="$output_dir/summary_files/cross_strat_gRNAs/metadata/unique_genes_with_valid_guides_non_excision.txt"
 cut -f1 "$merged_fp" | sort -u > "$unique_genes_file"
 num_unique_genes=$(wc -l < "$unique_genes_file")
 
 # set up variable to run all strategies together or separately
 all_strats_together="False"
 
-# This replaces the old array-job submission by looping over each gene row
-# and calling the worker script once per row.
 shell_script="$script_dir/non_excision_guides_array_setup.sh"
-output_dir="$resolved_output_base$RUN_NAME"
-for ((task_id=1; task_id<=num_unique_genes; task_id++)); do
-    bash "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together" "$task_id"
-done
+run_indexed_jobs "$num_unique_genes" "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together"

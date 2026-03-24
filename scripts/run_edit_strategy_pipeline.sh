@@ -6,11 +6,15 @@ set -euo pipefail
 # Resolve paths relative to this script rather than a fixed project location.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
+execution_utils="$project_root/scripts/utils/execution_mode.sh"
 
 # source params for the run
 param_file="$project_root/data/params/params.txt"
 source "$param_file"
+source "$execution_utils"
 echo "$RUN_NAME"
+run_mode="$(get_run_mode)"
+echo "Execution mode: $run_mode"
 
 if [[ "$OUTPUT_DIR" = /* ]]; then
   resolved_output_base="$OUTPUT_DIR"
@@ -90,3 +94,9 @@ excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
 excision_output_dir="$output_dir/excision"
 run_pipeline "$excision_pipeline" "$excision_output_dir"
 echo "Finished running excision pipeline."
+
+# run cross-strategy guide analysis after all editing-strategy pipelines finish
+guide_analysis_script="$script_dir/run_guide_analysis.sh"
+echo "Running guide analysis..."
+bash "$guide_analysis_script" "$output_dir" "$new_param_file"
+echo "Finished running guide analysis."

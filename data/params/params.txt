@@ -1,5 +1,9 @@
 # parameters for running stratified gene editing analysis
 
+# execution mode
+RUN_MODE="local" # str: "local" runs indexed steps in-process; "hpc" submits them as qsub array jobs and waits for completion
+HPC_QSUB_ARGS="" # str: optional extra qsub arguments for RUN_MODE="hpc" (for example: "-l h_rt=04:00:00 -pe smp 2")
+
 # params for filtering transcript data
 FILTER_TRANSCRIPTS=1 # boolean: filter transcript file for downstream analysis
 GENE_EXPRESSION_THRESH=1 # float: TPM threshold at which we'll consider a gene to be 'expressed' in a tissue
