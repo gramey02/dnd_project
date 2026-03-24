@@ -51,7 +51,7 @@ PHASED_1000G_VCF_DIR="/wynton/group/capra/data/wynton_databases/1000_genomes/rel
 # params for running excavate
 REF_GENOME_FASTA="data/reference_genomes/filtered_hg38.fa" # str: filepath for human reference GENOME
 CHROM_FASTA_FILEPATH="data/reference_genomes/" # str: filepath where fastas for specific chromosomes live
-EXCAVATE_SCRIPT="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_PAMsites/excavate/main.py" # str: filepath to the EXCAVATE entrypoint
+EXCAVATE_SCRIPT="scripts/excavate/main.py" # str: filepath to the EXCAVATE entrypoint
 
 # params for excision pipeline
 UPSTREAM_EXCISION_DIST=50000

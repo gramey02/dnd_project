@@ -63,7 +63,7 @@ run_indexed_jobs "$num_common_var_genes" "$excavate_vcf_creation" "$output_dir" 
 echo "Finished creating excavate inputs."
 
 # script to run excavate
-run_excavate_script="$project_root/scripts/EXCAVATE_HT_run/run_excavate.sh"
+run_excavate_script="$project_root/scripts/excavate/run_excavate.sh"
 echo "Started running EXCAVATE..."
 run_indexed_jobs "$num_common_var_genes" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
