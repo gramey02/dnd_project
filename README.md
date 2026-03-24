@@ -14,7 +14,7 @@ git clone https://github.com/gramey02/dnd_project.git
 ```
 
 ### Set Up Conda Environment
-Create the conda environment from the repo root using the included [environment.yml](/wynton/home/capra/gramey02/dnd_project/environment.yml) file:
+Create the conda environment from the repo root using the included `environment.yml` file:
 
 ```bash
 conda env create -f environment.yml
@@ -28,9 +28,9 @@ conda activate excavate
 
 
 ### Data downloads
-We use data from several clinical and genomic databases including GTEx, ClinGen, and 1000 Genomes. Run the data_dowloads.sh script to ensure the necessary files are downloaded.
+We use data from several clinical and genomic databases including GTEx, ClinGen, and 1000 Genomes. Run the `data/data_dowloads.sh` script to ensure the necessary files are downloaded.
 ```bash
-
+bash ./data/data_downloads.sh
 ```
 
 ### Gene sets and running the pipeline
