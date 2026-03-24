@@ -32,11 +32,8 @@ vcf_dir="$resolved_output_base$RUN_NAME/excision/excavate/Guide_filtered_vcfs" #
 
 OUTPUT_FILE="$resolved_output_base$RUN_NAME/summary_files/cross_strat_gRNAs/results/${gene}_excision_gRNAs.csv"
 
-if [ -f "$OUTPUT_FILE" ]; then
-    echo "Output file for ${gene} exists."
-else
+if [ ! -f "$OUTPUT_FILE" ]; then
     # downsample to the top 258 snp locations with the higest heterozygote frequency
-    echo "Output file for ${gene} does not exist, restarting gRNA priortization from scratch or from checkpoint."
     gRNA_script="$script_dir/excision_guides.py"
     python3 "$gRNA_script" --output_dir "$output_dir" --gene "$gene" --num_samples "$NUM_SAMPLES" --valid_pairs_fp "$valid_pairs_fp" --vcf_dir "$vcf_dir" --max_iter 50
 fi

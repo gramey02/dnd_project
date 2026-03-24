@@ -31,12 +31,11 @@ if [[ -z "$task_id" ]]; then
 fi
 # Pick the chromosome assigned to this one local loop iteration.
 chrom=$(awk -v row="$task_id" 'NR == row {print $1}' "$chrom_set")
-echo "$chrom"
+chrom="${chrom%\"}"
+chrom="${chrom#\"}"
 # get the file that contains the biallelic snps on the current chromosome
 af_file="$AF_FILE_DIR/TGP_chr${chrom}_afs.txt"
 
 # run the indel script
 script="$script_dir/get_common_vars.py"
-echo "Started identifying common coding vars..."
 python3 "$script" --af_limit "$AF_LIMIT" --chrom "$chrom" --af_file "$af_file" --exon_file "$exon_file" --output_dir "$output_dir" --total_num_chroms "$total_num_chroms"
-echo "Finished running chromosme ${chrom}."

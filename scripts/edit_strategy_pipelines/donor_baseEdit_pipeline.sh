@@ -22,11 +22,6 @@ fi
 # find exon_file
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
-# get num chromosomes
-col=$(head -1 "$exon_file" | tr ',' '\n' | grep -nx "chromosome_name" | cut -d: -f1)
-cut -d',' -f"$col" "$exon_file" | tail -n +2 | sort -u > "$resolved_output_base$RUN_NAME/chromosomes/chrom_set.txt"
-num_chroms=$(wc -l < "$resolved_output_base$RUN_NAME/chromosomes/chrom_set.txt")
-
 # script to get ubiquitous donor regions & identify common vars in them
 donor_common_vars="$project_root/scripts/get_common_vars/ss_disruption/get_donor_splice_site_vars.sh"
 echo "Started identifying ubiquitous donor regions & common vars..."
@@ -83,10 +78,11 @@ filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
 bash "$get_targeted_hets" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
 echo "Finished calculating heterozygous individual numbers."
 
-# script to calculate number of guides needed to reach heterozygous individuals for each gene
-get_guide_info="$project_root/scripts/get_guides/non_excision_guides.sh"
-echo "Calculating number of guides to target heterozygotes..."
-excavate_output_dir=$output_dir"/excavate/excavate_outputs"
-filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
-bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
-echo "Finished calculating number of guides."
+# we've written a script to handle this externally
+# # script to calculate number of guides needed to reach heterozygous individuals for each gene
+# get_guide_info="$project_root/scripts/get_guides/non_excision_guides.sh"
+# echo "Calculating number of guides to target heterozygotes..."
+# excavate_output_dir=$output_dir"/excavate/excavate_outputs"
+# filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
+# bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
+# echo "Finished calculating number of guides."

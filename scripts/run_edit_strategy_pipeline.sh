@@ -34,6 +34,19 @@ run_pipeline() {
   bash "$pipeline_script" "$strategy_output_dir" "$new_param_file"
 }
 
+run_pipeline_async() {
+  local strategy_name="$1"
+  local pipeline_script="$2"
+  local strategy_output_dir="$3"
+
+  echo "Running ${strategy_name} pipeline..."
+  bash "$pipeline_script" "$strategy_output_dir" "$new_param_file" &
+  local pid=$!
+  echo "Started ${strategy_name} pipeline with PID ${pid}."
+  pipeline_pids+=("$pid")
+  pipeline_names+=("$strategy_name")
+}
+
 # # make output directory for the run
 output_dir="${resolved_output_base}${RUN_NAME}"
 mkdir_if_missing "$output_dir"
@@ -57,46 +70,61 @@ else
     printf 'EXON_FILE_FOR_ANALYSIS="%s"\n' "$ORIGINAL_EXON_FILE" >> "$new_param_file" # append KEY=VALUE
 fi
 
-# now call shell scripts to run sub-pipelines for each of the editing strategies and pass in the set parameters
-# will parallelize these so they can run at the same time
+exon_file="$EXON_FILE_FOR_ANALYSIS"
+chrom_set_file="$output_dir/chromosomes/chrom_set.txt"
+col=$(head -1 "$exon_file" | tr ',' '\n' | sed 's/^"//; s/"$//' | grep -nx "chromosome_name" | cut -d: -f1)
+cut -d',' -f"$col" "$exon_file" | tail -n +2 | sed 's/^"//; s/"$//' | sort -u > "$chrom_set_file"
 
-# indel pipeline
-echo "Running indel pipeline..."
-indel_pipeline="$script_dir/edit_strategy_pipelines/indel_pipeline.sh"
-indel_output_dir="$output_dir/indels"
-run_pipeline "$indel_pipeline" "$indel_output_dir"
-echo "Finished running indel pipeline."
+# now call shell scripts to run sub-pipelines for each of the requested editing strategies
+pipeline_pids=()
+pipeline_names=()
 
-# crisproff pipeline
-echo "Running crisproff pipeline..."
-crisproff_pipeline="$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh"
-crisproff_output_dir="$output_dir/CRISPRoff"
-run_pipeline "$crisproff_pipeline" "$crisproff_output_dir"
-echo "Finished running crisproff pipeline."
+for strategy in "${EDIT_STRATS[@]}"; do
+    case "$strategy" in
+        indels)
+            run_pipeline_async "indel" "$script_dir/edit_strategy_pipelines/indel_pipeline.sh" "$output_dir/indels"
+            ;;
+        CRISPRoff)
+            run_pipeline_async "CRISPRoff" "$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh" "$output_dir/CRISPRoff"
+            ;;
+        acceptor_base_edits)
+            run_pipeline_async "acceptor" "$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh" "$output_dir/acceptor_base_edits"
+            ;;
+        donor_base_edits)
+            run_pipeline_async "donor" "$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh" "$output_dir/donor_base_edits"
+            ;;
+        excision)
+            run_pipeline_async "excision" "$script_dir/edit_strategy_pipelines/excision_pipeline.sh" "$output_dir/excision"
+            ;;
+        *)
+            echo "Error: unsupported strategy '$strategy' in EDIT_STRATS." >&2
+            exit 1
+            ;;
+    esac
+done
 
-# acceptor base edits pipeline
-echo "Running acceptor base edits pipeline..."
-acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
-acceptor_output_dir="$output_dir/acceptor_base_edits"
-run_pipeline "$acceptor_pipeline" "$acceptor_output_dir"
-echo "Finished running acceptor pipeline."
+pipeline_failures=0
+for i in "${!pipeline_pids[@]}"; do
+    pid="${pipeline_pids[$i]}"
+    strategy_name="${pipeline_names[$i]}"
+    if wait "$pid"; then
+        echo "Finished running ${strategy_name} pipeline."
+    else
+        echo "Error: ${strategy_name} pipeline failed." >&2
+        pipeline_failures=1
+    fi
+done
 
-# donor base edits pipeline
-echo "Running donor base edits pipeline..."
-donor_pipeline="$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh"
-donor_output_dir="$output_dir/donor_base_edits"
-run_pipeline "$donor_pipeline" "$donor_output_dir"
-echo "Finished running donor pipeline."
-
-# excision pipeline
-echo "Running excision pipeline..."
-excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
-excision_output_dir="$output_dir/excision"
-run_pipeline "$excision_pipeline" "$excision_output_dir"
-echo "Finished running excision pipeline."
+if (( pipeline_failures != 0 )); then
+    exit 1
+fi
 
 # run cross-strategy guide analysis after all editing-strategy pipelines finish
-guide_analysis_script="$script_dir/run_guide_analysis.sh"
-echo "Running guide analysis..."
-bash "$guide_analysis_script" "$output_dir" "$new_param_file"
-echo "Finished running guide analysis."
+if (( RUN_GUIDE_ANALYSIS == 1 )); then
+    guide_analysis_script="$script_dir/run_guide_analysis.sh"
+    echo "Running guide analysis..."
+    bash "$guide_analysis_script" "$output_dir" "$new_param_file"
+    echo "Finished running guide analysis."
+else
+    echo "Skipping guide analysis because RUN_GUIDE_ANALYSIS=$RUN_GUIDE_ANALYSIS."
+fi

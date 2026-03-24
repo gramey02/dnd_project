@@ -22,7 +22,6 @@ if [[ -z "$task_id" ]]; then
 fi
 
 gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$unique_genes_file")
-echo "$gene"
 
 gRNA_script="$script_dir/non_excision_guides.py"
 python3 "$gRNA_script" --output_dir "$output_dir" --gene "$gene" --num_samples "$NUM_SAMPLES" --all_strats_together "$all_strats_together"

@@ -193,7 +193,7 @@ def main():
                 gene_cpg_dict[row.ensembl_gene_id]=[overlapping_cpgs.cpg_name.values[0], overlapping_cpgs.chromStart.values[0], overlapping_cpgs.chromEnd.values[0]]
                 overlaps_cpg_island.append(1)
                 overlap_amount.append(overlapping_cpgs.overlap.values[0])
-        with open('/wynton/protected/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/CpG_data/CpGIsland_Overlap/intersect_' +str(acceptable_intersection) + 'bp/TSS_' + str(promoter_ud) + 'u_' + str(promoter_dd) + 'd/dhs_CpGIsland_Overlap_dict.pkl', 'wb') as file:
+        with open('data/cpg_islands/dhs_CpGIsland_Overlap_dict.pkl', 'wb') as file:
             pickle.dump(gene_cpg_dict, file)
         #counter+=1
     # merge with larger df

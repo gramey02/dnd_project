@@ -22,11 +22,6 @@ fi
 # find exon_file
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
-# get num chromosomes
-col=$(head -1 "$exon_file" | tr ',' '\n' | grep -nx "chromosome_name" | cut -d: -f1)
-cut -d',' -f"$col" "$exon_file" | tail -n +2 | sort -u > "$resolved_output_base$RUN_NAME/chromosomes/chrom_set.txt"
-num_chroms=$(wc -l < "$resolved_output_base$RUN_NAME/chromosomes/chrom_set.txt")
-
 # script to get ubiquitous acceptor regions & identify common vars in them
 acceptor_common_vars="$project_root/scripts/get_common_vars/ss_disruption/get_acceptor_splice_site_vars.sh"
 echo "Started identifying ubiquitous acceptor regions & common vars..."
@@ -42,7 +37,7 @@ num_common_var_genes=$(wc -l < $common_var_genes) # get the number of genes that
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
 echo "Started generating common var loc files..."
 cv_dict_filepath=$output_dir"/ubiq_region_CommonVars/CommonVars_ALL_dict.pkl"
-python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir"
+python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir" --af_file_dir "$AF_FILE_DIR"
 echo "Finished generating common var loc files."
 
 # script to filter vcfs accordingly
@@ -81,10 +76,12 @@ filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
 bash "$get_targeted_hets" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
 echo "Finished calculating heterozygous individual numbers."
 
-# script to calculate number of guides needed to reach heterozygous individuals for each gene
-get_guide_info="$project_root/scripts/get_guides/non_excision_guides.sh"
-echo "Calculating number of guides to target heterozygotes..."
-excavate_output_dir=$output_dir"/excavate/excavate_outputs"
-filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
-bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
-echo "Finished calculating number of guides."
+
+# we've written a script to handle this externally
+# # script to calculate number of guides needed to reach heterozygous individuals for each gene
+# get_guide_info="$project_root/scripts/get_guides/non_excision_guides.sh"
+# echo "Calculating number of guides to target heterozygotes..."
+# excavate_output_dir=$output_dir"/excavate/excavate_outputs"
+# filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
+# bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
+# echo "Finished calculating number of guides."

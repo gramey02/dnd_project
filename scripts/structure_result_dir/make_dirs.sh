@@ -23,12 +23,7 @@ output_dir="${resolved_output_base}${RUN_NAME}"
 # ---- helper function: create a directory if missing, print a friendly message
 mkdir_if_missing() {
   local d="$1"
-  if [ -d "$d" ]; then
-    echo "Directory '$d' already exists."
-  else
-    mkdir -p "$d"       # -p creates parents as needed; safe to call repeatedly
-    echo "Directory '$d' created."
-  fi
+  mkdir -p "$d"
 }
 
 # ---- 1) Always create these at the RUN LEVEL (outside editing strategies)
@@ -65,6 +60,7 @@ ALWAYS_PER_STRAT_DEFAULT=(
 ALWAYS_PER_STRAT_EXCISION=(
   ""
   "CommonVars"
+  "CommonVars/refined_common_vars"
   "excavate"
   "excavate/Guide_locs"
   "excavate/Guide_filtered_vcfs"

@@ -60,6 +60,8 @@ def main():
     output_dir=args.output_dir
     gene=args.gene
 
+    os.makedirs(output_dir, exist_ok=True)
+
     # load exon data frame
     exon_df = pd.read_csv(exon_file, dtype={'chromosome_name':'str'},index_col=0)
 
@@ -70,7 +72,7 @@ def main():
     gene_exons=exon_df[exon_df['hgnc_symbol']==gene]
     gene_exons = gene_exons[gene_exons['transcript_biotype'].isin(['protein_coding','nonsense_mediated_decay', 'non_stop_decay', 'lncRNA', 'miRNA'])]
 
-    snp_positions=list(pd.DataFrame(cv_dict[gene], names=['pos', 'af'])['pos'])
+    snp_positions=list(pd.DataFrame(cv_dict[gene], columns=['pos', 'af'])['pos'])
     possible_snp_pairs = list(combinations(snp_positions, 2))
     refined_snp_list=[x for x in possible_snp_pairs if pair_encompasses_exon_ubiquitously(x,gene_exons)]
     final_snp_set=set()
@@ -81,7 +83,8 @@ def main():
             final_snp_set.add(pair[1])
     final_snp_list=list(final_snp_set)
     # save the new list of snps
-    with open(output_dir + '/' + gene + '_refined_snp_list.pkl', 'wb') as fp:
+    output_filepath = os.path.join(output_dir, f'{gene}_refined_snp_list.pkl')
+    with open(output_filepath, 'wb') as fp:
         pickle.dump(final_snp_list,fp)
 
 

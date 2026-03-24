@@ -88,9 +88,9 @@ def main():
     exon_filt = exon_df[['hgnc_symbol','chromosome_name']].drop_duplicates().reset_index(drop=True)
     # create a data frame of coordinates
     coord_df = pd.DataFrame({
-        'hgnc_symbol':genes_w_commonVars,
-        'lower_coord':lowest_var_pos,
-        'higher_coord':highest_var_pos
+        'hgnc_symbol': pd.Series(genes_w_commonVars, dtype='object'),
+        'lower_coord': lowest_var_pos,
+        'higher_coord': highest_var_pos
     })
     # filter to only those genes that have a valid common variant that we can run EXCAVATE on
     genes_w_commonVars_df = exon_filt[exon_filt['hgnc_symbol'].isin(genes_w_commonVars)]

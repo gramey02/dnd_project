@@ -86,12 +86,12 @@ echo "Finished filtering vcfs based on valid guides."
 het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
 filtered_vcf_dir=$output_dir"/excavate/Guide_filtered_vcfs"
 echo "Started capturing heterozygote excision information..."
-echo $exon_file
 run_indexed_jobs "$num_genes_w_guides" "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
 echo "Finished capturing heterozygote excision information."
 
-# script to get the number of individuals haplotype-specific guides per gene
-get_guide_info="$project_root/scripts/get_guides/excision_guides.sh"
-echo "Calculating number of guides to target heterozygotes..."
-bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
-echo "Finished calculating number of guides."
+# we've written a script to handle this externally
+# # script to get the number of individuals haplotype-specific guides per gene
+# get_guide_info="$project_root/scripts/get_guides/excision_guides.sh"
+# echo "Calculating number of guides to target heterozygotes..."
+# bash "$get_guide_info" "$output_dir/excavate/guide_numbers" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
+# echo "Finished calculating number of guides."

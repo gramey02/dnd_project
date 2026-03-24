@@ -50,12 +50,7 @@ fi
 
 # make output file directory below
 output_files=$output_dir"/excavate/excavate_outputs/${gene}_output"
-if [ ! -d "$output_files" ]; then
-    mkdir -p "$output_files"
-    echo "Directory '$output_files' created."
-else
-    echo "Directory '$output_files' already exists."
-fi
+mkdir -p "$output_files"
 
 
 # run excavate for each gene below

@@ -15,12 +15,7 @@ source "$execution_utils"
 # make directory to hold info
 mkdir_if_missing() {
   local d="$1"
-  if [ -d "$d" ]; then
-    echo "Directory '$d' already exists."
-  else
-    mkdir -p "$d"       # -p creates parents as needed; safe to call repeatedly
-    echo "Directory '$d' created."
-  fi
+  mkdir -p "$d"
 }
 mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs"
 mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/metadata"
