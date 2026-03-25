@@ -1,8 +1,9 @@
 # parameters for running stratified gene editing analysis
 
 # execution mode
-RUN_MODE="local" # str: "local" runs indexed steps in-process; "hpc" submits them as qsub array jobs and waits for completion
-HPC_QSUB_ARGS="" # str: optional extra qsub arguments for RUN_MODE="hpc" (for example: "-l h_rt=04:00:00 -pe smp 2")
+RUN_MODE="hpc" # str: pipeline execution mode; currently only "hpc" is supported and submits indexed steps as qsub array jobs
+HPC_QSUB_ARGS="" # str: optional extra qsub arguments (for example: "-l h_rt=04:00:00 -pe smp 2")
+RUN_GUIDE_ANALYSIS=0 # boolean: if 1, run the post-pipeline cross-strategy guide analysis phase; if 0, skip it
 
 # params for filtering transcript data
 FILTER_TRANSCRIPTS=1 # boolean: filter transcript file for downstream analysis
@@ -13,13 +14,10 @@ USE_ONLY_CANONICAL="False" # boolean: within the canonical/tsl filtering pipelin
 USE_TSL_FLAG="False" # boolean: within the canonical/tsl filtering pipeline, tells us whether to filter on tsl
 TSL_NUM=0 # int: if >0, filter using this TSL integer confidence annotation
 KEEP_ALL_TRANSCRIPTS="True" # boolean: if no transcripts for a gene pass the above thresholds, keep all transcripts for that gene. If 0, keeps only the canonical transcript for the gene.
-TRANSCRIPT_TPM_FILE="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/transcript_tpm/dhsGenes_GTEx_transcript_TPMs.txt" # tells us the per-transcript TPM
-SAMPLE_ATTRIBUTES_FILE="/wynton/group/capra/data/GTEx/v10/2025-05-06/metadata/GTEx_Analysis_v10_Annotations_SampleAttributesDS.txt" # tells us the tissues that each sample ID belongs to
-GENE_MEDIAN_TPMS_FILE="/wynton/group/capra/data/GTEx/v10/2025-05-06/rna-seq/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
-
+TRANSCRIPT_TPM_FILE="data/GTEx/dhsGenes_GTEx_transcript_TPMs.txt" # tells us the per-transcript TPM
+SAMPLE_ATTRIBUTES_FILE="data/GTEx/GTEx_Analysis_v10_Annotations_SampleAttributesDS.txt" # tells us the tissues that each sample ID belongs to
+GENE_MEDIAN_TPMS_FILE="data/GTEx/rna-seq/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
 ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
-#ORIGINAL_EXON_FILE="/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/pipeline_results/RUN_12_19_25/filtered_transcripts/filtered_exon_info_DCC_ZIC1.csv"
-
 
 # params for identifying common variants
 AF_LIMIT=0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
@@ -47,7 +45,6 @@ DONOR_SNP_REGION="3-21" # str: will be parsed in subsequent files. Window in whi
 ACCEPTOR_SNP_REGION="4-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice acceptor sites
 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
-CHROM_SET='/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/chrom_separated_genes/chromosomes.txt' # str: set of chromosomes of interest in .txt file format
 AF_FILE_DIR="data/biallelic_afs" # str: directory containing TGP_chr*_afs.txt files
 BIALLELIC_SNPS_DIR="data/biallelic_vcfs" # str: directory containing TGP_chr*_biallelicSNPs.vcf.gz files
 PHASED_1000G_VCF_DIR="/wynton/group/capra/data/wynton_databases/1000_genomes/release/20190312_biallelic_SNV_and_INDEL" # str: directory containing ALL.chr*.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz files
