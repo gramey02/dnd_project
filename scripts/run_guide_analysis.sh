@@ -2,11 +2,8 @@
 #$ -N run_guide_analysis
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/run_guide_analysis.out
-#$ -e logs/err/run_guide_analysis.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
+#$ -o ../logs/out/run_guide_analysis.out
+#$ -e ../logs/err/run_guide_analysis.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
@@ -17,9 +14,6 @@ param_file="$2"
 
 source "$param_file"
 source "$execution_utils"
-
-run_mode="$(get_run_mode)"
-echo "Running guide analysis in $run_mode mode..."
 
 non_excision_guides_script="$script_dir/get_guides/non_excision_guides.sh"
 echo "Running non-excision guide analysis..."

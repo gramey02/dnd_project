@@ -84,7 +84,7 @@ echo "Finished running excision pipeline."
 if (( RUN_GUIDE_ANALYSIS == 1 )); then
     guide_analysis_script="$script_dir/run_guide_analysis.sh"
     echo "Running guide analysis..."
-    bash "$guide_analysis_script" "$output_dir" "$new_param_file"
+    qsub "$guide_analysis_script" "$output_dir" "$new_param_file"
     echo "Finished running guide analysis."
 else
     echo "Skipping guide analysis because RUN_GUIDE_ANALYSIS=$RUN_GUIDE_ANALYSIS."

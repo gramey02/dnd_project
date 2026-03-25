@@ -2,11 +2,8 @@
 #$ -N non_excision_guides
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/non_excision_guides.out
-#$ -e logs/err/non_excision_guides.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
+#$ -o ../../logs/out/non_excision_guides.out
+#$ -e ../../logs/err/non_excision_guides.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
@@ -49,4 +46,4 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 all_strats_together="False"
 
 shell_script="$script_dir/non_excision_guides_array_setup.sh"
-run_indexed_jobs "$num_unique_genes" "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together"
+qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=5:00:00 $shell_script "$output_dir" "$unique_genes_file" "$param_file" $all_strats_together

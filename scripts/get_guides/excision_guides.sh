@@ -2,11 +2,8 @@
 #$ -N excision_guides
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/excision_guides.out
-#$ -e logs/err/excision_guides.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
+#$ -o ../../logs/out/excision_guides.out
+#$ -e ../../logs/err/excision_guides.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/../.." && pwd)"
@@ -48,4 +45,4 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 valid_pairs_fp="$output_dir/excision/CommonVars/valid_snp_pairs"
 
 shell_script="$script_dir/excision_guides_array_setup.sh"
-run_indexed_jobs "$num_unique_genes" "$shell_script" "$output_dir" "$unique_genes_file" "$param_file" "$valid_pairs_fp"
+qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=24:00:00 $shell_script "$output_dir" "$unique_genes_file" "$param_file" "$valid_pairs_fp"
