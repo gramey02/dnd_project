@@ -2,11 +2,8 @@
 #$ -N het_combos
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/het_combos.out
-#$ -e logs/err/het_combos.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
+#$ -o ../../logs/out/het_combos.out
+#$ -e ../../logs/err/het_combos.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -17,17 +14,8 @@ source "$param_file"
 genes_w_guides="$3"
 filtered_vcf_dir="$4"
 exon_file="$5"
-# Local replacement for SGE array index: callers now pass the row number
-# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
-task_id="${6:-${SGE_TASK_ID:-}}"
 
-if [[ -z "$task_id" ]]; then
-    echo "Error: provide a gene row index as argument 6." >&2
-    exit 1
-fi
-
-# Select the gene assigned to this one local loop iteration.
-gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$genes_w_guides")
+gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $genes_w_guides)
 script="$script_dir/het_combos.py"
 
 python3 "$script" --output_dir "$output_dir" \

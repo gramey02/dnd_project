@@ -2,11 +2,8 @@
 #$ -N promoter_common_vars
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/promoter_common_vars.out
-#$ -e logs/err/promoter_common_vars.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
+#$ -o ../../../logs/out/promoter_common_vars.out
+#$ -e ../../../logs/err/promoter_common_vars.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

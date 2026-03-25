@@ -2,11 +2,8 @@
 #$ -N filter_excision_snps
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/filter_excision_snps.out
-#$ -e logs/err/filter_excision_snps.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
+#$ -o ../../logs/out/filter_excision_snps.out
+#$ -e ../../logs/err/filter_excision_snps.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -17,21 +14,12 @@ source "$param_file"
 cv_dict_filepath="$3"
 exon_file="$4"
 common_var_genes="$5"
-# Local replacement for SGE array index: callers now pass the row number
-# explicitly, but we still honor SGE_TASK_ID if this wrapper is reused there.
-task_id="${6:-${SGE_TASK_ID:-}}"
 
 script="$script_dir/filter_excision_snps.py"
 
-if [[ -z "$task_id" ]]; then
-    echo "Error: provide a gene row index as argument 6." >&2
-    exit 1
-fi
+gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $common_var_genes)
 
-# Select the gene assigned to this one local loop iteration.
-gene=$(awk -v row="$task_id" 'NR == row {print $1}' "$common_var_genes")
-
-python3 "$script" --output_dir "$output_dir" \
-    --gene "$gene" \
-    --cv_dict_filepath "$cv_dict_filepath" \
-    --exon_file "$exon_file"
+python3 $script --output_dir $output_dir \
+    --gene $gene \
+    --cv_dict_filepath $cv_dict_filepath \
+    --exon_file $exon_file

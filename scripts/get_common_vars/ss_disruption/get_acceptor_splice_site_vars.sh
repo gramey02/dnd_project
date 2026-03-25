@@ -2,8 +2,8 @@
 #$ -N get_acceptor_splice_site_vars
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/get_acceptor_splice_site_vars.out
-#$ -e logs/err/get_acceptor_splice_site_vars.err
+#$ -o ../../../logs/out/get_acceptor_splice_site_vars.out
+#$ -e ../../../logs/err/get_acceptor_splice_site_vars.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail
