@@ -63,7 +63,7 @@ Code in `scripts/browser_tracks` is designed to generate viewable common variant
 ```bash
 bash ./scripts/create_browser_tracks.sh
 ```
-to generate bigBed files which can be uploaded to the UCSC Genome Browser TrackHub feature. Browser tracks for the current gene set can be found at the Github Repo (DnD_TrackHubs_Public)[https://github.com/gramey02/DnD_TrackHubs_Public] or at the session link https://genome.ucsc.edu/s/gramey02/MYH7_example_session.
+to generate bigBed files which can be uploaded to the UCSC Genome Browser TrackHub feature. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/MYH7_example_session.
 
 ## Outputs
 Running the full pipeline produces information for each of the four gene editing strategies.
