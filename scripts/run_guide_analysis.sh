@@ -2,8 +2,8 @@
 #$ -N run_guide_analysis
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../logs/out/run_guide_analysis.out
-#$ -e ../logs/err/run_guide_analysis.err
+#$ -o logs/out/run_guide_analysis.out
+#$ -e logs/err/run_guide_analysis.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
@@ -17,10 +17,10 @@ source "$execution_utils"
 
 non_excision_guides_script="$script_dir/get_guides/non_excision_guides.sh"
 echo "Running non-excision guide analysis..."
-bash "$non_excision_guides_script" "$output_dir" "$param_file"
+qsub "$non_excision_guides_script" "$output_dir" "$param_file"
 echo "Finished non-excision guide analysis."
 
 excision_guides_script="$script_dir/get_guides/excision_guides.sh"
 echo "Running excision guide analysis..."
-bash "$excision_guides_script" "$output_dir" "$param_file"
+qsub "$excision_guides_script" "$output_dir" "$param_file"
 echo "Finished excision guide analysis."
