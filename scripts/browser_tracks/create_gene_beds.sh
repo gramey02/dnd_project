@@ -2,9 +2,6 @@
 #$ -N create_gene_beds
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -t 1-566 # change to number of genes
-#$ -o ../../logs/out/cgb.out
-#$ -e ../../logs/err/cgb.err
 
 source "../../data/params/params.txt"
 results_dir=$OUTPUT_DIR

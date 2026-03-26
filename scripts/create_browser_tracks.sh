@@ -20,8 +20,8 @@ mkdir -p "$project_root/logs/out" "$project_root/logs/err"
 # Run promoter BED creation
 # -------------------------------
 bed_script="$script_dir/browser_tracks/create_gene_beds.sh"
-targetable_genes_file=
-num_targetable_genes=
+#targetable_genes_file=
+num_targetable_genes=566
 
 qsub -cwd -sync y \
      -l mem_free=5G -l h_rt=02:00:00 \

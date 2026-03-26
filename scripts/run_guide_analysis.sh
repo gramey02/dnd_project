@@ -7,7 +7,6 @@
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$script_dir/.." && pwd)"
-execution_utils="$project_root/scripts/utils/execution_mode.sh"
 
 output_dir="$1"
 param_file="$2"
@@ -17,10 +16,10 @@ source "$execution_utils"
 
 non_excision_guides_script="$script_dir/get_guides/non_excision_guides.sh"
 echo "Running non-excision guide analysis..."
-qsub "$non_excision_guides_script" "$output_dir" "$param_file"
+qsub -cwd -l mem_free=5G -l h_rt=02:00:00 "$non_excision_guides_script" "$output_dir" "$param_file"
 echo "Finished non-excision guide analysis."
 
 excision_guides_script="$script_dir/get_guides/excision_guides.sh"
 echo "Running excision guide analysis..."
-qsub "$excision_guides_script" "$output_dir" "$param_file"
+qsub -cwd -l mem_free=5G -l h_rt=02:00:00  "$excision_guides_script" "$output_dir" "$param_file"
 echo "Finished excision guide analysis."
