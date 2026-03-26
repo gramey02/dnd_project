@@ -56,7 +56,7 @@ bash ./scripts/run_guide_analysis.sh <run_output_dir> <run_output_dir>/PARAMS/pa
 ```
 
 ## Running on an HPC
-Code was originally intended to run on a high-performance compute cluster, and the current pipeline expects an SGE-style HPC environment. Included python scripts can additionally be run in a standalone format (outside of an HPC).
+Code was originally intended to run on a high-performance compute cluster, and the current pipeline expects an SGE-style HPC environment. Included python scripts can additionally be run in a standalone format (outside of an HPC). Adaption of the code to run locally is in development.
 
 ## Browser tracks
 Code in `scripts/browser_tracks` is designed to generate viewable common variant tracks for genes of interest. Run
