@@ -1,3 +1,7 @@
+#! /usr/bin/env bash
+#$ -S /bin/bash     # run job as a Bash shell [IMPORTANT]
+#$ -cwd             # run job in the current working directory
+
 # code to download data for dnd computations
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -39,5 +43,8 @@ onekg_dir="$data_dir/1KG"
 mkdir -p "$onekg_dir"
 wget -r -np -nH --cut-dirs=3 -R "index.html*" -P "$onekg_dir" https://hgdownload.soe.ucsc.edu/gbdb/hg38/1000Genomes/
 
-
 # download hg38 fasta information
+wget ftp://hgdownload.gi.ucsc.edu/goldenPath/hg38/chromosomes/*
+
+# need to downlaod hg38 chrom sizes too
+wget https://hgdownload.soe.ucsc.edu/goldenpath/hg38/bigZips/hg38.chrom.sizes
