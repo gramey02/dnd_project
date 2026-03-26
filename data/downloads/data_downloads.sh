@@ -77,7 +77,7 @@ wget -r -np -nH --cut-dirs=3 -R "index.html*" \
 ########################################
 # hg38 reference (FIXED)
 ########################################
-ref_dir="$data_dir/hg38_reference"
+ref_dir="$data_dir/reference_genomes"
 mkdir -p "$ref_dir"
 
 # Option A (recommended): full genome fasta
