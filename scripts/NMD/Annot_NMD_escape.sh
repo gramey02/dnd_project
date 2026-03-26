@@ -2,8 +2,6 @@
 #$ -N Annot_NMD_escape
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/Annot_NMD_escape.out
-#$ -e logs/err/Annot_NMD_escape.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

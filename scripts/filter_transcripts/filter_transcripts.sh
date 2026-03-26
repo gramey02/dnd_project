@@ -2,8 +2,6 @@
 #$ -N filter_transcripts
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/filter_transcripts.out
-#$ -e ../../logs/err/filter_transcripts.err
 
 # Fail fast on errors, undefined variables, and pipeline failures.
 set -euo pipefail

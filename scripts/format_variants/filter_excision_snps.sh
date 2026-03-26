@@ -2,8 +2,6 @@
 #$ -N filter_excision_snps
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/filter_excision_snps.out
-#$ -e ../../logs/err/filter_excision_snps.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

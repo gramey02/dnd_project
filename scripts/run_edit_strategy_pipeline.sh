@@ -2,8 +2,8 @@
 #$ -N run_edit_strategy_pipeline
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../logs/out/run_edit_strategy_pipeline.out
-#$ -e ../logs/err/run_edit_strategy_pipeline.err
+#$ -o logs/out/run_edit_strategy_pipeline.out
+#$ -e logs/err/run_edit_strategy_pipeline.err
 
 # Resolve paths relative to this script instead of using hard-coded absolute paths.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,7 +36,7 @@ if (( $FILTER_TRANSCRIPTS == 1 )); then
     mkdir -p "$output_dir/filtered_transcripts" # mkdir -p "$output_dir/filtered_transcripts/expression_filtered"
     # run transcript filtering
     filter_script="$script_dir/filter_transcripts/filter_transcripts.sh" # include this in the params file eventually
-    qsub -cwd -l mem_free=1G -l h_rt=01:00:00 -sync y "$filter_script" "$output_dir" "$new_param_file"
+    qsub -l mem_free=1G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/filter_transcripts.out" -e "$project_root/logs/err/filter_transcripts.err" "$filter_script" "$output_dir" "$new_param_file"
 else
     # update
     printf 'EXON_FILE_FOR_ANALYSIS="%s"\n' "$ORIGINAL_EXON_FILE" >> "$new_param_file" # append KEY=VALUE
@@ -49,43 +49,43 @@ fi
 echo "Running indel pipeline..."
 indel_pipeline="$script_dir/edit_strategy_pipelines/indel_pipeline.sh"
 indel_output_dir=$output_dir"/indels"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$indel_pipeline" "$indel_output_dir" "$new_param_file"
+qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/indel_pipeline.out" -e "$project_root/logs/err/indel_pipeline.err" "$indel_pipeline" "$indel_output_dir" "$new_param_file"
 echo "Finished running indel pipeline."
 
 # crisproff pipeline
 echo "Running crisproff pipeline..."
 crisproff_pipeline="$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh"
 crisproff_output_dir=$output_dir"/CRISPRoff"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$crisproff_pipeline" "$crisproff_output_dir" "$new_param_file"
+qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/crisproff_pipeline.out" -e "$project_root/logs/err/crisproff_pipeline.err" "$crisproff_pipeline" "$crisproff_output_dir" "$new_param_file"
 echo "Finished running crisproff pipeline."
 
 # acceptor base edits pipeline
 echo "Running acceptor base edits pipeline..."
 acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
 acceptor_output_dir=$output_dir"/acceptor_base_edits"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
+qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/acceptor_pipeline.out" -e "$project_root/logs/err/acceptor_pipeline.err" "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
 echo "Finished running acceptor pipeline."
 
 # donor base edits pipeline
 echo "Running donor base edits pipeline..."
 donor_pipeline="$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh"
 donor_output_dir=$output_dir"/donor_base_edits"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$donor_pipeline" "$donor_output_dir" "$new_param_file"
+qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/donor_pipeline.out" -e "$project_root/logs/err/donor_pipeline.err" "$donor_pipeline" "$donor_output_dir" "$new_param_file"
 echo "Finished running donor pipeline."
 
 # excision pipeline
 echo "Running excision pipeline..."
 excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
 excision_output_dir=$output_dir"/excision"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 "$excision_pipeline" "$excision_output_dir" "$new_param_file"
+qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/excision_pipeline.out" -e "$project_root/logs/err/excision_pipeline.err" "$excision_pipeline" "$excision_output_dir" "$new_param_file"
 echo "Finished running excision pipeline."
 
-# run cross-strategy guide analysis after all editing-strategy pipelines finish
-if (( RUN_GUIDE_ANALYSIS == 1 )); then
-    guide_analysis_script="$script_dir/run_guide_analysis.sh"
-    echo "Running guide analysis..."
-    qsub "$guide_analysis_script" "$output_dir" "$new_param_file"
-    echo "Finished running guide analysis."
-else
-    echo "Skipping guide analysis because RUN_GUIDE_ANALYSIS=$RUN_GUIDE_ANALYSIS."
-fi
+# # run cross-strategy guide analysis after all editing-strategy pipelines finish
+# if (( RUN_GUIDE_ANALYSIS == 1 )); then
+#     guide_analysis_script="$script_dir/run_guide_analysis.sh"
+#     echo "Running guide analysis..."
+#     qsub "$guide_analysis_script" "$output_dir" "$new_param_file"
+#     echo "Finished running guide analysis."
+# else
+#     echo "Skipping guide analysis because RUN_GUIDE_ANALYSIS=$RUN_GUIDE_ANALYSIS."
+# fi

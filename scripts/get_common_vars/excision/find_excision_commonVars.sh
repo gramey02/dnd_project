@@ -2,8 +2,6 @@
 #$ -N find_excision_commonVars
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../../logs/out/find_excision_commonVars.out
-#$ -e ../../../logs/err/find_excision_commonVars.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

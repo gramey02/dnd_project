@@ -2,8 +2,6 @@
 #$ -N generate_filtered_vcfs
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/generate_filtered_vcfs.out
-#$ -e ../../logs/err/generate_filtered_vcfs.err
 
 set -euo pipefail
 

@@ -2,8 +2,6 @@
 #$ -N position_filtering
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/position_filtering.out
-#$ -e ../../logs/err/position_filtering.err
 
 # Load modules
 module load CBI bcftools

@@ -2,8 +2,6 @@
 #$ -N get_donor_splice_site_vars
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../../logs/out/get_donor_splice_site_vars.out
-#$ -e ../../../logs/err/get_donor_splice_site_vars.err
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
