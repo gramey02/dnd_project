@@ -87,4 +87,7 @@ You can generate summary information for your results by running the `scripts/ma
 You can extract dominant pathogenic mutation counts and Human Phenotype Ontology (HPO) terms for each gene of interest. For mutation counts, run `scripts/clinvar_muts/ClinVar.ipynb`, and for ontology lists, run `scripts/hpo_terms/hpo_dominant_mapping.ipynb`.
 
 ## Citation
-Please cite the coming preprint if you use this code.
+Please cite the following [medRxiv preprint](https://www.medrxiv.org/content/10.64898/2026.03.26.26349431v1) when using code from this repository:
+```bash
+Ramey, G. D., Cowan, Q. T., Saxena, A. G., Macklin, B. L., Watry, H. L., Mei, S., ... & Capra, J. A. (2026). Leveraging human genetic variation to therapeutically target hundreds of genes with dominant & dispensable disease alleles. medRxiv, 2026-03.
+```

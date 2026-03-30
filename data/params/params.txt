@@ -1,8 +1,6 @@
 # parameters for running stratified gene editing analysis
 
-# execution mode
-RUN_MODE="hpc" # str: pipeline execution mode; currently only "hpc" is supported and submits indexed steps as qsub array jobs
-HPC_QSUB_ARGS="" # str: optional extra qsub arguments (for example: "-l h_rt=04:00:00 -pe smp 2")
+# execute guide analysis automatically?
 RUN_GUIDE_ANALYSIS=0 # boolean: if 1, run the post-pipeline cross-strategy guide analysis phase; if 0, skip it
 
 # params for filtering transcript data
