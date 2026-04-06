@@ -14,8 +14,11 @@ TSL_NUM=0 # int: if >0, filter using this TSL integer confidence annotation
 KEEP_ALL_TRANSCRIPTS="True" # boolean: if no transcripts for a gene pass the above thresholds, keep all transcripts for that gene. If 0, keeps only the canonical transcript for the gene.
 TRANSCRIPT_TPM_FILE="data/GTEx/dhsGenes_GTEx_transcript_TPMs.txt" # tells us the per-transcript TPM - this is a filtered version so the file isn't so big
 SAMPLE_ATTRIBUTES_FILE="data/GTEx/GTEx_Analysis_v10_Annotations_SampleAttributesDS.txt" # tells us the tissues that each sample ID belongs to
-GENE_MEDIAN_TPMS_FILE="data/GTEx/rna-seq/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
-ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
+GENE_MEDIAN_TPMS_FILE="data/GTEx/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
+COLNAMES_FILE="data/GTEx/transcripts_tpm_small.txt"
+TISSUE_MAP_FILE="data/GTEx/tissue_mappings.csv"
+#ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
+ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data_small.csv"
 
 # params for identifying common variants
 AF_LIMIT=0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
@@ -64,6 +67,7 @@ FILTER_OUT_NEARBY_GENES=1 # boolean: if true, pipeline restricts excision window
 EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision")
 
 # params for storing all of the outputs
+PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
 RUN_NAME="RUN_$(date +%m_%d_%y)" # run name is the current date
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
