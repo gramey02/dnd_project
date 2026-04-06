@@ -9,6 +9,7 @@ import pickle
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--transcript_tpm_file', type = str, required = True, help = 'Filepath to transcript tpms from GTEx.')
+    parser.add_argument('--colnames_file', type=str, required=True, help='Filepath to small tpm file for column name extraction.')
     parser.add_argument('--sample_attributes_file', type = str, required = True, help = 'Filepath to attributes of samples in transcript tpm file (from GTEx)')
     parser.add_argument('--gene_median_tpms_file', type = str, required = True, help = 'Filepath to gene tpms "median-ed" across samples from GTEx.')
     parser.add_argument('--exon_file', type = str, required = True, help = 'Exon information file name.')
@@ -16,6 +17,7 @@ def parse_args():
     parser.add_argument('--prop_thresh', type = float, required = True, help = 'Threshold for proportion of expression a transcript must account for to be considered for furuter analyses.')
     parser.add_argument('--keep_all_transcripts', type = str, required = True, help = 'Keep all transcripts for future analyses if no transcripts pass the proportion threshold.')
     parser.add_argument('--output_file', type = str, required = True, help = 'Output file holding filtered data.')
+    parser.add_argument('--tissue_map_file', type=str, required=True, help="File containing map between names with and without spaces.")
     args = parser.parse_args()
     return args
 
@@ -27,9 +29,9 @@ def main():
     exon_filename = args.exon_file
     sample_attributes_filename = args.sample_attributes_file # '/wynton/group/capra/data/GTEx/v10/2025-05-06/metadata/GTEx_Analysis_v10_Annotations_SampleAttributesDS.txt'
     output_file=args.output_file
+    ttpm_colnames_file = args.colnames_file
 
     #load file that contains column names for ttpm
-    ttpm_colnames_file="/wynton/protected/home/capra/gramey02/ConklinCollab/data/GTEx/transcripts_tpm_small.txt"
     ttpm_colnames_df=pd.read_table(ttpm_colnames_file)
     # load transcript tpms
     ttpms = pd.read_table(transcript_tpm_filename,names=list(ttpm_colnames_df.columns))
@@ -112,7 +114,7 @@ def main():
     # note where each gene is expressed
     transcripts_to_keep=[]
     prop_transcripts_lost_per_gene = []
-    tissue_mappings=pd.read_csv('/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_04_22/transcript_tpm/tissue_mappings.csv',index_col=0)
+    tissue_mappings=pd.read_csv(args.tissue_map_file,index_col=0)
     tissue_mapping_dict=dict(zip(tissue_mappings['gene_underscored_tissue'],tissue_mappings['transcript_space_tissue']))
     for gene in prop_df.gene.unique():
         noV_gene = gene.split('.')[0] # get the gene name without the decimal version attached

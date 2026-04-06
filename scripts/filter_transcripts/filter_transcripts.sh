@@ -3,35 +3,28 @@
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
 
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
-
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
-
 # parse input arguments
 output_dir="$1"
 param_file="$2"
 source "$param_file"
 cur_exon_file="$ORIGINAL_EXON_FILE"
-
-# Resolve repo-relative paths from params.txt against the project root.
-if [[ "$cur_exon_file" != /* ]]; then
-    cur_exon_file="$(cd "$project_root" && realpath "$cur_exon_file")"
-fi
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
 # run script below
 echo "Filtering transcripts by expression proportion..."
 # run the expression-based transcript filtering script
-expr_filt_script="$script_dir/filter_transcripts_expression.py"
-python3 "$expr_filt_script" --transcript_tpm_file "$TRANSCRIPT_TPM_FILE" \
-    --sample_attributes_file "$SAMPLE_ATTRIBUTES_FILE" \
-    --gene_median_tpms_file "$GENE_MEDIAN_TPMS_FILE" \
-    --exon_file "$cur_exon_file" \
+expr_filt_script="$script_dir/filter_transcripts/filter_transcripts_expression.py"
+python3 "$expr_filt_script" --transcript_tpm_file "$project_root/$TRANSCRIPT_TPM_FILE" \
+    --sample_attributes_file "$project_root/$SAMPLE_ATTRIBUTES_FILE" \
+    --gene_median_tpms_file "$project_root/$GENE_MEDIAN_TPMS_FILE" \
+    --exon_file "$project_root/$cur_exon_file" \
     --tpm_thresh "$GENE_EXPRESSION_THRESH" \
     --prop_thresh "$EXPRESSION_PROP" \
     --keep_all_transcripts "$KEEP_ALL_TRANSCRIPTS" \
-    --output_file "$output_dir/filtered_transcripts/filtered_exon_info.csv"
+    --output_file "$output_dir/filtered_transcripts/filtered_exon_info.csv" \
+    --colnames_file "$project_root/$COLNAMES_FILE" \
+    --tissue_map_file "$project_root/$TISSUE_MAP_FILE"
 echo "Finished filtering transcripts by expression proportion."
 cur_exon_file="$output_dir/filtered_transcripts/filtered_exon_info.csv"
 
