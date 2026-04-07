@@ -3,22 +3,33 @@
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
 
-# Resolve helper scripts relative to this pipeline file.
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
-
 # parse input arguments
 param_file="$2"
 source "$param_file"
 output_dir="$1"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
 # find exon_file
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # get num chromosomes
-col=$(head -1 "$exon_file" | tr ',' '\n' | grep -nx "chromosome_name" | cut -d: -f1)
-cut -d',' -f"$col" "$exon_file" | tail -n +2 | sort -u > "$OUTPUT_DIR/$RUN_NAME/chromosomes/chrom_set.txt"
-num_chroms=$(wc -l < "$OUTPUT_DIR/$RUN_NAME/chromosomes/chrom_set.txt")
+if [ ! -e "filename.txt" ]; then
+    col=$(head -1 "$project_root/$exon_file" \
+    | tr ',' '\n' \
+    | sed 's/"//g' \
+    | grep -nx "chromosome_name" \
+    | cut -d: -f1)
+    # fail early if column not found
+    if [[ -z "$col" ]]; then
+        echo "ERROR: chromosome_name column not found in $project_root/$exon_file"
+        exit 1
+    fi
+
+    # save chromosomes into their own file
+    cut -d',' -f"$col" "$project_root/$exon_file" | tail -n +2 | sort -u > "$OUTPUT_DIR/$RUN_NAME/chromosomes/chrom_set.txt"
+    num_chroms=$(wc -l < "$OUTPUT_DIR/$RUN_NAME/chromosomes/chrom_set.txt")
+fi
 
 # script to get ubiquitous acceptor regions & identify common vars in them
 acceptor_common_vars="$project_root/scripts/get_common_vars/ss_disruption/get_acceptor_splice_site_vars.sh"
@@ -37,7 +48,7 @@ num_common_var_genes=$(wc -l < "$common_var_genes") # get the number of genes th
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
 echo "Started generating common var loc files..."
 cv_dict_filepath="$output_dir/ubiq_region_CommonVars/CommonVars_ALL_dict.pkl"
-python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir" --af_file_dir "$AF_FILE_DIR"
+python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$project_root/$exon_file" --output_dir "$output_dir" --af_file_dir "$project_root/$AF_FILE_DIR"
 echo "Finished generating common var loc files."
 
 # script to filter vcfs accordingly
@@ -53,13 +64,11 @@ echo "Started running EXCAVATE..."
 qsub -t 1-"$num_common_var_genes" -l mem_free=1G -l h_rt=00:45:00 -sync y -o "$project_root/logs/out/excavate_acc.out" -e "$project_root/logs/err/excavate_acc.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
 
-# script to generate relevant summary statistics & figures based on these regions and vars
-
 # generate text files for the valid guides so you can filter the vcfs accordingly
 generate_guide_textFiles="$project_root/scripts/format_variants/generate_guide_textFiles.py"
 guides_filepath="$output_dir/excavate/excavate_outputs" # switch to not include indels later
 echo "Started generating position files for valid guides..."
-python3 "$generate_guide_textFiles" --guides_filepath "$guides_filepath" --exon_file "$exon_file" --output_dir "$output_dir"
+python3 "$generate_guide_textFiles" --guides_filepath "$guides_filepath" --exon_file "$project_root/$exon_file" --output_dir "$output_dir"
 echo "Finished generating position files for valid guides."
 
 # filter vcfs based on these viable EXCAVATE guides to see how many heterozygous individuals they will capture

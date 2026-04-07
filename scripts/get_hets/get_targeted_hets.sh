@@ -2,11 +2,6 @@
 #$ -N get_targeted_hets
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/get_targeted_hets.out
-#$ -e ../../logs/err/get_targeted_hets.err
-
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
 
 # parse input arguments
 output_dir="$1"
@@ -15,6 +10,8 @@ source "$param_file"
 gene_info="$3"
 excavate_output_dir="$4"
 filtered_vcf_dir="$5"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
 if [[ "$OUTPUT_DIR" = /* ]]; then
   resolved_output_base="$OUTPUT_DIR"
@@ -37,7 +34,7 @@ num_strats=${#filtered[@]} # Count
 # run het individual calculation script
 # (script will save both the number of hets and the identifiers of the hets
 # to be compared to other editing methods)
-script="$script_dir/get_targeted_hets.py"
+script="$script_dir/get_hets/get_targeted_hets.py"
 python3 "$script" --output_dir "$output_dir" \
     --gene_info "$gene_info" \
     --excavate_output_dir "$excavate_output_dir" \
