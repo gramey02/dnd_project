@@ -3,21 +3,19 @@
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
 
-# Resolve helper scripts relative to this pipeline file.
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
-
 # parse input arguments
 param_file="$2"
 source "$param_file"
 output_dir="$1"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
 # set exon file
 exon_file="$EXON_FILE_FOR_ANALYSIS"
 
 # script to generate appropriate coordinates to look for excision variants in
 find_variant_region="$project_root/scripts/format_variants/find_variant_region.py"
-python3 "$find_variant_region" --exon_file "$exon_file" --output_dir "$output_dir/CommonVars" --upstream_excision_dist "$UPSTREAM_EXCISION_DIST" --downstream_excision_dist "$DOWNSTREAM_EXCISION_DIST" --nearest_gene_file "$GENE_BODY_FILE" --filter_out_nearby_genes "$FILTER_OUT_NEARBY_GENES"
+python3 "$find_variant_region" --exon_file "$project_root/$exon_file" --output_dir "$output_dir/CommonVars" --upstream_excision_dist "$UPSTREAM_EXCISION_DIST" --downstream_excision_dist "$DOWNSTREAM_EXCISION_DIST" --nearest_gene_file "$GENE_BODY_FILE" --filter_out_nearby_genes "$FILTER_OUT_NEARBY_GENES"
 
 # script to generate list of variants in excision windows to run through excavate
 find_commonVars="$project_root/scripts/get_common_vars/excision/find_excision_commonVars.sh"
@@ -43,7 +41,7 @@ echo "Finished filtering excision snps."
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
 echo "Started generating common var loc files..."
 cv_dict_filepath="$output_dir/CommonVars/CommonVars_ALL_dict.pkl"
-python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$exon_file" --output_dir "$output_dir" --af_file_dir "$AF_FILE_DIR" --edit_strat "excision"
+python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$project_root/$exon_file" --output_dir "$output_dir" --af_file_dir "$project_root/$AF_FILE_DIR" --edit_strat "excision"
 num_common_var_genes=$(ls -1 "$output_dir/excavate/CommonVar_locs" | wc -l)
 echo "Finished generating common var loc files."
 
@@ -64,7 +62,7 @@ echo "Finished running EXCAVATE."
 generate_guide_textFiles="$project_root/scripts/format_variants/generate_guide_textFiles.py"
 guides_filepath="$output_dir/excavate/excavate_outputs"
 echo "Started generating position files for valid guides..."
-python3 "$generate_guide_textFiles" --guides_filepath "$guides_filepath" --exon_file "$exon_file" --output_dir "$output_dir"
+python3 "$generate_guide_textFiles" --guides_filepath "$guides_filepath" --exon_file "$project_root/$exon_file" --output_dir "$output_dir"
 echo "Finished generating position files for valid guides."
 
 # filter vcfs based on these viable EXCAVATE guides to see how many heterozygous individuals they will capture
@@ -79,6 +77,5 @@ echo "Finished filtering vcfs based on valid guides."
 het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
 filtered_vcf_dir="$output_dir/excavate/Guide_filtered_vcfs"
 echo "Started capturing heterozygote excision information..."
-echo "$exon_file"
 qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_excision.out" -e "$project_root/logs/err/hets_excision.err" "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
 echo "Finished capturing heterozygote excision information."
