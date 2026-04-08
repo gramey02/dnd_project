@@ -179,6 +179,10 @@ def main():
     # refilter the exon df after adding these transcripts
     final_exon_df = exon_df[exon_df.ensembl_transcript_id.isin(noV_transcripts)]
 
+    # finally, filter to just the biotypes we care about
+    protein_coding_biotypes=['protein_coding','nonsense_mediated_decay', 'non_stop_decay', 'lncRNA', 'miRNA']
+    final_exon_df=final_exon_df[final_exon_df['transcript_biotype'].isin(protein_coding_biotypes)]
+
     # save file
     print(output_file)
     final_exon_df.to_csv(output_file)
