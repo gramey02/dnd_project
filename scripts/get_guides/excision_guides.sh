@@ -2,17 +2,14 @@
 #$ -N excision_guides
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/excision_guides.out
-#$ -e ../../logs/err/excision_guides.err
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
-execution_utils="$project_root/scripts/utils/execution_mode.sh"
-
+# parse input args
 output_dir="$1"
 param_file="$2"
 source "$param_file"
 source "$execution_utils"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
 # make directory to hold info
 mkdir_if_missing() {
@@ -25,7 +22,7 @@ mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/checkpoints"
 mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/results"
 mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/logs"
 
-# merge the information on genes into one file
+# merge the information on genes targetable by this strategy into one file
 BASE="$output_dir"
 merged_fp="$output_dir/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides.txt"
 
@@ -37,7 +34,7 @@ for strat in excision; do
         >> "$merged_fp"
 done
 
-# get the unique genes from the file
+# get the unique genes from the merged file
 unique_genes_file="$output_dir/summary_files/cross_strat_gRNAs/metadata/unique_genes_with_valid_guides_non_excision.txt"
 cut -f1 "$merged_fp" | sort -u > "$unique_genes_file"
 num_unique_genes=$(wc -l < "$unique_genes_file")
@@ -45,4 +42,4 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 valid_pairs_fp="$output_dir/excision/CommonVars/valid_snp_pairs"
 
 shell_script="$script_dir/excision_guides_array_setup.sh"
-qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=24:00:00 $shell_script "$output_dir" "$unique_genes_file" "$param_file" "$valid_pairs_fp"
+qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=24:00:00 -o "$project_root/logs/out/excision_array.out" -e "$project_root/logs/err/excision_array.err" $shell_script "$output_dir" "$unique_genes_file" "$param_file" "$valid_pairs_fp"

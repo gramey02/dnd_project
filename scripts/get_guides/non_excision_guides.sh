@@ -2,19 +2,16 @@
 #$ -N non_excision_guides
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o ../../logs/out/non_excision_guides.out
-#$ -e ../../logs/err/non_excision_guides.err
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
-execution_utils="$project_root/scripts/utils/execution_mode.sh"
-
+# parse input variables
 output_dir="$1"
 param_file="$2"
 source "$param_file"
 source "$execution_utils"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
-# make directory to hold info
+# make directory to hold guide outputs
 mkdir_if_missing() {
   local d="$1"
   mkdir -p "$d"
@@ -25,7 +22,7 @@ mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/checkpoints"
 mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/results"
 mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/logs"
 
-# merge the information on genes into one file
+# merge the information on genes targetable by these strategies into one file
 BASE="$output_dir"
 merged_fp="$output_dir/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides.txt"
 
@@ -45,5 +42,5 @@ num_unique_genes=$(wc -l < "$unique_genes_file")
 # set up variable to run all strategies together or separately
 all_strats_together="False"
 
-shell_script="$script_dir/non_excision_guides_array_setup.sh"
-qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=5:00:00 $shell_script "$output_dir" "$unique_genes_file" "$param_file" $all_strats_together
+shell_script="$script_dir/scripts/get_guides/non_excision_guides_array_setup.sh"
+qsub -t 1-"$num_unique_genes" -l mem_free=5G -l h_rt=05:00:00 -o "$project_root/logs/out/non_excision_array.out" -e "$project_root/logs/err/non_excision_array.err" $shell_script "$output_dir" "$unique_genes_file" "$param_file" "$all_strats_together"
