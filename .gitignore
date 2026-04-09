@@ -5,3 +5,4 @@ data/biallelic_afs/
 data/biallelic_vcfs/
 data/reference_genomes/
 results/
+logs/
