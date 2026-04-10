@@ -1,8 +1,7 @@
-data/1KG/
-data/GENCODE/
+data/biallelic_afs/TGP_chr*_afs.txt
+data/GENCODE/gencode.v49.annotation.gtf
+data/1KG
 data/GTEx/
-data/biallelic_afs/
-data/biallelic_vcfs/
 data/reference_genomes/
 results/
 logs/
