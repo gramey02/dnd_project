@@ -14,7 +14,7 @@ git clone https://github.com/gramey02/dnd_project.git
 ```
 
 ### 1 - Setup
-1a. Start by setting up the conda environment
+__1a__. Start by setting up the conda environment
 Create the conda environment from the repo root using the included `environment.yml` file:
 
 ```bash
@@ -26,7 +26,7 @@ This environment is named `excavate`. Activate it with:
 ```bash
 conda activate excavate
 ```
-2b. Modify and run the setup script
+__1b__. Modify and run the setup script
 Navigate to `scripts/setup.sh`.
 Replace "<your_email_here>" with your preferred email to receive notifications about the pipeline run.
 Replace "<dnd_project_directory>" with the full directory into which you cloned the dnd repo. You can find this full directory string by navigating to dnd_project and printing the working directory:
@@ -34,7 +34,23 @@ Replace "<dnd_project_directory>" with the full directory into which you cloned 
 cd dnd_project
 pwd # should print something like '/Users/projects/dnd_project', or wherever you've cloned the repo to
 ```
-Next, run the setup script:
+Now that you have the dnd_project filepath and your email handy, make the changes in the setup script, and save the file:
+```bash
+# setup.sh script
+SEARCH1="Grace.Ramey@ucsf.edu"
+REPLACE1="<your_email_here>" # <--replace with your email
+DIR="<dnd_project_directory>" # <--replace with the dnd project directory that you printed
+
+find "$DIR" -type f -exec sed -i "s|$SEARCH1|$REPLACE1|g" {} +
+echo "Done replacing '$SEARCH1' with '$REPLACE1' in $DIR"
+
+SEARCH2="/wynton/home/capra/gramey02/dnd_project"
+REPLACE2="<dnd_project_directory>" # <--replace with the dnd project directory that you printed
+
+find "$DIR" -type f -exec sed -i "s|$SEARCH2|$REPLACE2|g" {} +
+echo "Done replacing '$SEARCH2' with '$REPLACE2' in $DIR"
+```
+Finally, run the setup script:
 ```bash
 cd scripts
 bash ./setup.sh
