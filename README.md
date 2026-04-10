@@ -28,7 +28,7 @@ conda activate excavate
 ```
 2b. Modify and run the setup script
 Navigate to `scripts/setup.sh`.
-Replace "<your email here>" with your preferred email to receive notifications about the pipeline.
+Replace "<your_email_here>" with your preferred email to receive notifications about the pipeline run.
 Replace "<dnd_project_directory>" with the full directory into which you cloned the dnd repo. You can find this full directory string by navigating to dnd_project and printing the working directory:
 ```bash
 cd dnd_project
