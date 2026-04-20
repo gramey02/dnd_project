@@ -5,18 +5,11 @@
 #$ -o ../../logs/out/make_dirs.out
 #$ -e ../../logs/err/make_dirs.err
 
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
-
-# script to create directories for the editing pipeline results
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
-execution_utils="$project_root/scripts/utils/execution_mode.sh"
-
 # load input argument that contains parameters for the run
 param_file="$1"
 source "$param_file"
-source "$execution_utils"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
 if [[ "$OUTPUT_DIR" = /* ]]; then
   resolved_output_base="$OUTPUT_DIR"
@@ -76,6 +69,7 @@ ALWAYS_PER_STRAT_EXCISION=(
   ""
   "CommonVars"
   "CommonVars/refined_common_vars"
+  "CommonVars/valid_snp_pairs"
   "excavate"
   "excavate/Guide_locs"
   "excavate/Guide_filtered_vcfs"

@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument('--exon_file', type = str, required = True, help = 'Exon information file name.')
     parser.add_argument('--output_dir', type=str, required=True, help="output directory for the pipeline run.")
     parser.add_argument('--gene', type=str, required=True, help="Current gene's name.")
+    parser.add_argument('--valid_snp_dir', type=str, required=True, help="Location to save valid snp pairs to.")
     args = parser.parse_args()
     return args
 
@@ -59,6 +60,7 @@ def main():
     exon_file=args.exon_file
     output_dir=args.output_dir
     gene=args.gene
+    valid_snp_dir=args.valid_snp_dir
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -73,19 +75,23 @@ def main():
     gene_exons = gene_exons[gene_exons['transcript_biotype'].isin(['protein_coding','nonsense_mediated_decay', 'non_stop_decay', 'lncRNA', 'miRNA'])]
 
     snp_positions=list(pd.DataFrame(cv_dict[gene], columns=['pos', 'af'])['pos'])
-    possible_snp_pairs = list(combinations(snp_positions, 2))
-    refined_snp_list=[x for x in possible_snp_pairs if pair_encompasses_exon_ubiquitously(x,gene_exons)]
+    possible_snp_pairs = set(combinations(snp_positions, 2)) # list(combinations(snp_positions, 2))
+    refined_snp_list={x for x in possible_snp_pairs if pair_encompasses_exon_ubiquitously(x,gene_exons)}
+    # save the valid snp pairs
+    with open(os.path.join(valid_snp_dir, f'{gene}_valid_snp_pairs.pkl'), 'wb') as fp:
+        pickle.dump(refined_snp_list, fp)
+    # un-pair the snps and save as a final set
     final_snp_set=set()
     for pair in refined_snp_list:
         if pair[0] not in final_snp_set:
             final_snp_set.add(pair[0])
         if pair[1] not in final_snp_set:
             final_snp_set.add(pair[1])
-    final_snp_list=list(final_snp_set)
+    #final_snp_list=list(final_snp_set)
     # save the new list of snps
     output_filepath = os.path.join(output_dir, f'{gene}_refined_snp_list.pkl')
     with open(output_filepath, 'wb') as fp:
-        pickle.dump(final_snp_list,fp)
+        pickle.dump(final_snp_set,fp)
 
 
 

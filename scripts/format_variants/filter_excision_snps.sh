@@ -12,6 +12,7 @@ exon_file="$4"
 common_var_genes="$5"
 project_root="$PROJECT_ROOT"
 script_dir="$project_root/scripts"
+valid_snp_dir="$6"
 
 script="$script_dir/format_variants/filter_excision_snps.py"
 
@@ -20,4 +21,5 @@ gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $common_var_genes)
 python3 $script --output_dir $output_dir \
     --gene $gene \
     --cv_dict_filepath $cv_dict_filepath \
-    --exon_file "$project_root/$exon_file"
+    --exon_file "$project_root/$exon_file" \
+    --valid_snp_dir "$valid_snp_dir"
