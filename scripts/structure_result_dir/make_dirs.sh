@@ -37,14 +37,6 @@ for d in "${ALWAYS_TOPLEVEL[@]}"; do
   mkdir_if_missing "$output_dir/$d"
 done
 
-# Create HPC log directories at the run level when requested.
-run_mode="$(get_run_mode)"
-if [[ "$run_mode" == "hpc" ]]; then
-  mkdir_if_missing "$output_dir/logs"
-  mkdir_if_missing "$output_dir/logs/out"
-  mkdir_if_missing "$output_dir/logs/err"
-fi
-
 # ---- 2) Always make these INSIDE EVERY STRATEGY FOLDER
 # These are relative to: $output_dir/<strategy>/
 # Keeping "" means: also create the strategy root itself.
