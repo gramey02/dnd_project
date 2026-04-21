@@ -1,10 +1,7 @@
 # parameters for running stratified gene editing analysis
 
-# execute guide analysis automatically?
-RUN_GUIDE_ANALYSIS=0 # boolean: if 1, run the post-pipeline cross-strategy guide analysis phase; if 0, skip it
-
 # params for filtering transcript data
-FILTER_TRANSCRIPTS=1 # boolean: filter transcript file for downstream analysis
+FILTER_TRANSCRIPTS=0 # boolean: filter transcript file for downstream analysis
 GENE_EXPRESSION_THRESH=1 # float: TPM threshold at which we'll consider a gene to be 'expressed' in a tissue
 EXPRESSION_PROP=0.05 # integer: mean proportion threshold at which we'll consider a transcript accounting for enough of a gene's expression across tissues to be considered in further analyses
 CANONICAL_TSL_FILTER="False" # boolean: filter based on canonical transcript annotation or tsl annotation
@@ -17,14 +14,15 @@ SAMPLE_ATTRIBUTES_FILE="data/GTEx/GTEx_Analysis_v10_Annotations_SampleAttributes
 GENE_MEDIAN_TPMS_FILE="data/GTEx/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
 COLNAMES_FILE="data/GTEx/transcripts_tpm_small.txt"
 TISSUE_MAP_FILE="data/GTEx/tissue_mappings.csv"
-#ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
-ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data_small.csv"
+ORIGINAL_EXON_FILE="results/RUN_04_15_26/filtered_transcripts/filtered_exon_info.csv"
+# ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
 
-# params for identifying common variants
+# params for identifying and filtering common variants
 AF_LIMIT=0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
 USE_UBIQUITOUS_REGIONS=1 # boolean: whether or not the common variants should only be considered if they are present in all gene transcripts (aka, in all transcripts that pass potential transcript filtering)
 USE_ALL_REGIONS=0 # boolean: whether or not the common variants should be considered if they're in non-ubiquitous regions (both this paramter and the previous param can be run simultaneously)
 REQUIRED_TRANSCRIPT_PROPORTION=0.5 # float: pertains to the previous parameter. Proportion of transcripts of a common variant should occur in to be considered.
+DOWNSAMPLE="True" # str: tells the excision script, where variants can reach the thousands, whether or not to downsample certain genes' variants
 
 # params for running NMD analysis
 RUN_NMD=1 # boolean: whether or not we run nonsense mediated decay analysis along with certain editing strategies
@@ -48,7 +46,7 @@ ACCEPTOR_SNP_REGION="4-21" # str: will be parsed in subsequent files. Window in 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
 AF_FILE_DIR="data/biallelic_afs" # str: directory containing TGP_chr*_afs.txt files
 BIALLELIC_SNPS_DIR="data/biallelic_vcfs" # str: directory containing TGP_chr*_biallelicSNPs.vcf.gz files
-PHASED_1000G_VCF_DIR="/wynton/group/capra/data/wynton_databases/1000_genomes/release/20190312_biallelic_SNV_and_INDEL" # str: directory containing ALL.chr*.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz files
+PHASED_1000G_VCF_DIR="data/1KG" # str: directory containing ALL.chr*.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz files
 
 # params for running excavate
 REF_GENOME_FASTA="data/reference_genomes/filtered_hg38.fa" # str: filepath for human reference GENOME
@@ -68,6 +66,6 @@ EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "exci
 
 # params for storing all of the outputs
 PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
-RUN_NAME="RUN_$(date +%m_%d_%y)" # run name is the current date
+RUN_NAME="RUN_04_15_26" # "RUN_$(date +%m_%d_%y)" # run name is the current date
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
