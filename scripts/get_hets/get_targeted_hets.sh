@@ -13,24 +13,6 @@ filtered_vcf_dir="$5"
 project_root="$PROJECT_ROOT"
 script_dir="$project_root/scripts"
 
-if [[ "$OUTPUT_DIR" = /* ]]; then
-  resolved_output_base="$OUTPUT_DIR"
-else
-  resolved_output_base="$project_root/$OUTPUT_DIR"
-fi
-
-# calculate the number of editing strategies you want to combine results for this analysis
-strats_to_remove=( "excision" )
-declare -A RM=()
-for s in "${strats_to_remove[@]}"; do
-  RM["${s,,}"]=1
-done
-filtered=() # Filter EDIT_STRATS -> keep only those NOT in RM (case-insensitive)
-for s in "${EDIT_STRATS[@]}"; do
-  [[ -n ${RM["${s,,}"]+x} ]] || filtered+=("$s")
-done
-num_strats=${#filtered[@]} # Count
-
 # run het individual calculation script
 # (script will save both the number of hets and the identifiers of the hets
 # to be compared to other editing methods)
@@ -38,7 +20,4 @@ script="$script_dir/get_hets/get_targeted_hets.py"
 python3 "$script" --output_dir "$output_dir" \
     --gene_info "$gene_info" \
     --excavate_output_dir "$excavate_output_dir" \
-    --filtered_vcf_dir "$filtered_vcf_dir" \
-    --num_strats "$num_strats" \
-    --strats "${filtered[@]}" \
-    --run_dir "$resolved_output_base$RUN_NAME"
+    --filtered_vcf_dir "$filtered_vcf_dir"

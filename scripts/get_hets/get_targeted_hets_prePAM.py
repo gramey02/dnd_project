@@ -45,7 +45,7 @@ def make_list_of_hets(r_clean_tdf):
 def main():
     # parse input args
     args = parse_args()
-    gene_info=pd.read_csv(args.gene_info, names=['gene','chrom', 'start_pos', 'end_pos', 'gene_coords', 'io_1', 'io_2'],sep='\t')
+    gene_info=pd.read_csv(args.gene_info, names=['gene','chrom', 'start_pos', 'end_pos', 'gene_coords', 'io_1', 'io_2'], header=None,sep='\t')
     output_dir=args.output_dir
     filtered_vcf_dir=args.filtered_vcf_dir
     num_samples=args.num_samples
@@ -61,7 +61,7 @@ def main():
     for gene in list(gene_info.gene.unique()):
         gene_list.append(gene)
         # load filtered vcf for the current gene
-        vcf = pd.read_table(filtered_vcf_dir + "/" + gene + '_CommonVar_filtered.vcf', comment='#', header=None)
+        vcf = pd.read_table(filtered_vcf_dir + "/" + gene + '_CommonVar_filtered.vcf.gz', compression='gzip', comment='#', header=None)
         vcf.columns=cols
 
         # determine how many people are hit by each snp

@@ -2,199 +2,54 @@
 #$ -N get_targeted_hets_prePAM
 #$ -M Grace.Ramey@ucsf.edu
 #$ -cwd
-#$ -o logs/out/get_targeted_hets_prePAM.out
-#$ -e logs/err/get_targeted_hets_prePAM.err
-
-# Fail fast on errors, undefined variables, and pipeline failures.
-set -euo pipefail
-
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project_root="$(cd "$script_dir/../.." && pwd)"
 
 # parse input arguments
-param_file="$project_root/data/params/params.txt"
+output_dir="$1"
+param_file="$2"
+gene_info="$3"
+filtered_vcf_dir="$4"
 source "$param_file"
+project_root="$PROJECT_ROOT"
+script_dir="$project_root/scripts"
 
-if [[ "$OUTPUT_DIR" = /* ]]; then
-  resolved_output_base="$OUTPUT_DIR"
-else
-  resolved_output_base="$project_root/$OUTPUT_DIR"
-fi
+# ensure the output dir exists
+mkdir -p $output_dir
 
-mkdir_if_missing() {
-  local d="$1"
-  if [ -d "$d" ]; then
-    echo "Directory '$d' already exists."
-  else
-    mkdir -p "$d"       # -p creates parents as needed; safe to call repeatedly
-    echo "Directory '$d' created."
-  fi
-}
-
-# # indel inputs
-# cur_strat="indels"
-# # # crisproff inputs
-# # cur_strat="CRISPRoff"
-# # # donor_baseEdit inputs
-# # cur_strat="donor_base_edits"
-# # # acceptor_baseEdit inputs
-# # cur_strat="acceptor_base_edits"
-
-# # set up directories and variables
-# make_het_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/prePAM_hets"
-# mkdir_if_missing $make_het_dir
-# output_dir=$make_het_dir
-# common_var_vcf_file_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_vcfs"
-# gene_info="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
-
-# echo $make_het_dir
-
-# # unzip files for input
-# for f in "$common_var_vcf_file_dir"/*.vcf.gz; do
-#     out="${f%.gz}"
-
-#     if [[ ! -e "$out" ]]; then
-#         gzip -dk "$f"
-#     fi
-# done
-
-# # # run het individual calculation script
-# # # (script will save both the number of hets and the identifiers of the hets
-# # # to be compared to other editing methods)
-# script="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_targeted_hets/get_targeted_hets_prePAM.py"
-
-# python3 $script --output_dir $output_dir \
-#     --gene_info $gene_info \
-#     --filtered_vcf_dir $common_var_vcf_file_dir \
-#     --num_samples $NUM_SAMPLES
+# run script
+script="$script_dir/get_hets/get_targeted_hets_prePAM.py"
+python3 "$script" --output_dir "$output_dir" --gene_info "$gene_info" --filtered_vcf_dir "$filtered_vcf_dir" --num_samples "$NUM_SAMPLES"
 
 
-# # ------------------ crisproff ------------------- #
-# # crisproff inputs
-# cur_strat="CRISPRoff"
-# # # donor_baseEdit inputs
-# # cur_strat="donor_base_edits"
-# # # acceptor_baseEdit inputs
-# # cur_strat="acceptor_base_edits"
-
-# # set up directories and variables
-# make_het_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/prePAM_hets"
-# mkdir_if_missing $make_het_dir
-# output_dir=$make_het_dir
-# common_var_vcf_file_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_vcfs"
-# gene_info="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
-
-# echo $make_het_dir
-
-# # unzip files for input
-# for f in "$common_var_vcf_file_dir"/*.vcf.gz; do
-#     out="${f%.gz}"
-
-#     if [[ ! -e "$out" ]]; then
-#         gzip -dk "$f"
-#     fi
-# done
-
-# # # run het individual calculation script
-# # # (script will save both the number of hets and the identifiers of the hets
-# # # to be compared to other editing methods)
-# script="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_targeted_hets/get_targeted_hets_prePAM.py"
-
-# python3 $script --output_dir $output_dir \
-#     --gene_info $gene_info \
-#     --filtered_vcf_dir $common_var_vcf_file_dir \
-#     --num_samples $NUM_SAMPLES
-
-# # ----------- donor base edits ------------------------
-# # donor_baseEdit inputs
-# cur_strat="donor_base_edits"
-# # # acceptor_baseEdit inputs
-# # cur_strat="acceptor_base_edits"
-
-# # set up directories and variables
-# make_het_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/prePAM_hets"
-# mkdir_if_missing $make_het_dir
-# output_dir=$make_het_dir
-# common_var_vcf_file_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_vcfs"
-# gene_info="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
-
-# echo $make_het_dir
-
-# # unzip files for input
-# for f in "$common_var_vcf_file_dir"/*.vcf.gz; do
-#     out="${f%.gz}"
-
-#     if [[ ! -e "$out" ]]; then
-#         gzip -dk "$f"
-#     fi
-# done
-
-# # # run het individual calculation script
-# # # (script will save both the number of hets and the identifiers of the hets
-# # # to be compared to other editing methods)
-# script="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_targeted_hets/get_targeted_hets_prePAM.py"
-
-# python3 $script --output_dir $output_dir \
-#     --gene_info $gene_info \
-#     --filtered_vcf_dir $common_var_vcf_file_dir \
-#     --num_samples $NUM_SAMPLES
 
 
-# # ---------------------- acceptor base edits ---------------
-# # acceptor_baseEdit inputs
-# cur_strat="acceptor_base_edits"
-
-# # set up directories and variables
-# make_het_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/prePAM_hets"
-# mkdir_if_missing $make_het_dir
-# output_dir=$make_het_dir
-# common_var_vcf_file_dir="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_vcfs"
-# gene_info="$OUTPUT_DIR$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
-
-# echo $make_het_dir
-
-# # unzip files for input
-# for f in "$common_var_vcf_file_dir"/*.vcf.gz; do
-#     out="${f%.gz}"
-
-#     if [[ ! -e "$out" ]]; then
-#         gzip -dk "$f"
-#     fi
-# done
-
-# # # run het individual calculation script
-# # # (script will save both the number of hets and the identifiers of the hets
-# # # to be compared to other editing methods)
-# script="/wynton/home/capra/gramey02/ConklinCollab/scripts/DN_targeted_hets/get_targeted_hets_prePAM.py"
-
-# python3 $script --output_dir $output_dir \
-#     --gene_info $gene_info \
-#     --filtered_vcf_dir $common_var_vcf_file_dir \
-#     --num_samples $NUM_SAMPLES
 
 
-strategies=("indels" "CRISPRoff" "donor_base_edits" "acceptor_base_edits")
 
-for cur_strat in "${strategies[@]}"; do
-    make_het_dir="$resolved_output_base$RUN_NAME/$cur_strat/prePAM_hets"
-    mkdir_if_missing "$make_het_dir"
-    output_dir="$make_het_dir"
-    common_var_vcf_file_dir="$resolved_output_base$RUN_NAME/$cur_strat/excavate/input_vcfs"
-    gene_info="$resolved_output_base$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
 
-    echo "Processing $cur_strat..."
-    echo "Output dir: $make_het_dir"
 
-    # unzip VCFs if needed
-    for f in "$common_var_vcf_file_dir"/*.vcf.gz; do
-        out="${f%.gz}"
-        [[ -e "$out" ]] && continue
-        gzip -dk "$f" &>/dev/null
-    done
 
-    python3 "$script_dir/get_targeted_hets_prePAM.py" \
-        --output_dir "$output_dir" \
-        --gene_info "$gene_info" \
-        --filtered_vcf_dir "$common_var_vcf_file_dir" \
-        --num_samples "$NUM_SAMPLES"
-done
+
+# strategies=("indels" "CRISPRoff" "donor_base_edits" "acceptor_base_edits")
+
+# for cur_strat in "${strategies[@]}"; do
+#     make_het_dir="$resolved_output_base$RUN_NAME/$cur_strat/prePAM_hets"
+#     mkdir_if_missing "$make_het_dir"
+#     output_dir="$make_het_dir"
+#     common_var_vcf_file_dir="$resolved_output_base$RUN_NAME/$cur_strat/excavate/input_vcfs"
+#     gene_info="$resolved_output_base$RUN_NAME/$cur_strat/excavate/input_metadata/excavate_run_metadata.txt"
+
+#     echo "Processing $cur_strat..."
+#     echo "Output dir: $make_het_dir"
+
+#     # unzip VCFs if needed
+#     for f in "$common_var_vcf_file_dir"/*.vcf.gz; do
+#         out="${f%.gz}"
+#         [[ -e "$out" ]] && continue
+#         gzip -dk "$f" &>/dev/null
+#     done
+
+#     python3 "$script_dir/get_targeted_hets_prePAM.py" \
+#         --output_dir "$output_dir" \
+#         --gene_info "$gene_info" \
+#         --filtered_vcf_dir "$common_var_vcf_file_dir" \
+#         --num_samples "$NUM_SAMPLES"

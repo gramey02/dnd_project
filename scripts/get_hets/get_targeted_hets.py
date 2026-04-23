@@ -12,9 +12,6 @@ def parse_args():
     parser.add_argument('--gene_info', type = str, required = True, help = 'Information on genes that have passed filtering criteria so far for the editing strat.')
     parser.add_argument('--excavate_output_dir', type=str, required=True, help='Directory where excavate outputs are located.')
     parser.add_argument('--filtered_vcf_dir', type=str, required=True, help='Directory where guide-filtered vcfs are located.')
-    parser.add_argument('--num_strats', type=int, required=True, help='Number of editing strategies to consider for the analysis.')
-    parser.add_argument('--strats', nargs="+", default=[], help="Editing strategies that share this analysis pipeline, in list/array form.")
-    parser.add_argument('--run_dir', type=str, required=True, help="Higher up run directory, so we can check other editing strategies' completion.")
     args = parser.parse_args()
     return args
 
@@ -52,9 +49,6 @@ def main():
     output_dir=args.output_dir
     excavate_output_dir=args.excavate_output_dir
     filtered_vcf_dir=args.filtered_vcf_dir
-    num_strats=args.num_strats
-    strats=args.strats
-    run_dir=args.run_dir
 
     # create a dict of genes and their viable genetic variants that can be targeted, based on results from excavate
     gene_targetableSNPs = {}
@@ -115,51 +109,6 @@ def main():
     num_df.to_csv(output_dir + '/num_hets_targeted.txt', sep='\t',index=False)
     with open(output_dir + '/unique_hets_hit.pkl', 'wb') as fp:
         pickle.dump(union_hets_dict, fp)
-
-    # # code below is to combine targetable hets results across editing strategies with this analysis pattern
-    # counter=0
-    # num_files_required=2 # need both the num_hets_targeted.pkl and the unique_hets_hit.pkl to have been created
-    # for strat in strats:
-    #     if len(os.listdir(run_dir + "/" + strat + "/excavate/het_individuals"))==(num_files_required+1): # +1 because there's also a metadata directory in there
-    #         # if the directory is full, it means that the editing strategy has finished running
-    #         counter+=1
-    # # now check if all editing strategies have completed by checking 'counter'
-    # strat_hets={}
-    # strat_nums={}
-    # if counter==len(strats):
-    #     gene_set=set()
-    #     # if all have finished running, merge the information into some summary files
-    #     for strat in strats:
-    #         # load files
-    #         with open(run_dir + "/" + strat + "/excavate/het_individuals/unique_hets_hit.pkl", 'rb') as fp:
-    #             strat_hets[strat] = pickle.load(fp)
-    #         cur_num_df=pd.read_csv(run_dir + "/" + strat + "/excavate/het_individuals/num_hets_targeted.txt", sep='\t')
-    #         strat_nums[strat] = cur_num_df
-    #         gene_set.update(cur_num_df['gene'])
-            
-        # # now let's get the new number of unique het individuals captured across the editing strategies
-        # gene_list=[]
-        # num_unique_hets_all_strats=[]
-        # hets_by_gene_across_strats={}
-        # for gene in gene_set:
-        #     gene_list.append(gene)
-        #     cur_hets=set()
-        #     # get current gene's hets across strategies
-        #     for strat in strats:
-        #         if gene in list(strat_hets[strat].keys()):
-        #             cur_hets.update(strat_hets[strat][gene])
-        #     num_unique_hets_all_strats.append(len(cur_hets))
-        #     hets_by_gene_across_strats[gene]=cur_hets
-        # # combine into df
-        # # super long column name, I know
-        # num_df_all_strats=pd.DataFrame({
-        #     'gene':gene_list,
-        #     'num_unique_hets_captured_across_editing_strategies':num_unique_hets_all_strats
-        # })
-        # # save
-        # num_df_all_strats.to_csv(run_dir + "/summary_files/num_unique_hets_all_strats.csv")
-        # with open(run_dir + "/summary_files/unique_hets_across_strats.pkl", 'wb') as fp:
-        #     pickle.dump(hets_by_gene_across_strats,fp)
 
 
 
