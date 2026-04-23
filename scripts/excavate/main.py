@@ -86,9 +86,9 @@ def add_generate_parser(subparsers):
         "--af-threshold", 
         type=str, 
         nargs="?",
-        default='0.1',
-        const='0.1', 
-        help="allele frequency threshold between 0 and 1 (default = 0.1)"
+        default='0.05',
+        const='0.05', 
+        help="allele frequency threshold between 0 and 1 (default = 0.05)"
     )
 
     gen_parser.add_argument( #this needs to be an option, not a flag
