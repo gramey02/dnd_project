@@ -72,6 +72,13 @@ echo "Started filtering vcfs based on valid guides..."
 qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/guide_filtering_indels.out" -e "$project_root/logs/err/guide_filtering_indels.err" "$guide_based_filtering" "$output_dir" "$param_file" "$genes_w_guides"
 echo "Finished filtering vcfs based on valid guides."
 
+# script to calculate the number of heterozygous individuals for each gene, pre-excavate filtering
+get_targeted_hets_prePAM="$project_root/scripts/get_hets/get_targeted_hets_prePAM.sh"
+echo "Started calculating heterozygous individual numbers (prePAM filtering)..."
+filtered_vcf_dir="$output_dir/excavate/input_vcfs"
+gene_info="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
+qsub -l mem_free=2G -l h_rt=01:00:00 -o "$project_root/logs/out/hets_indels_prepam.out" -e "$project_root/logs/err/hets_indels_prepam.err" "$get_targeted_hets_prePAM" "$output_dir/prePAM_hets" "$param_file" "$gene_info" "$filtered_vcf_dir"
+
 # script to calculate number of heterozygous individuals for each gene
 get_targeted_hets="$project_root/scripts/get_hets/get_targeted_hets.sh"
 echo "Started calculating heterozygous indvidual numbers..."
