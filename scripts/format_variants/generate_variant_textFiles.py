@@ -28,60 +28,61 @@ def main():
 
     # load exon data frame
     exon_df = pd.read_csv(exon_file, dtype={'chromosome_name':'str'},index_col=0)
-
-    # load common var dict
-    with open(cv_dict_filepath, 'rb') as fp:
-        cv_dict = pickle.load(fp)
-    # # if the editing strategy requires extra filtering of the set, do it here
-    # if edit_strat=="excision":
-    #     exon_filt=exon_df[['hgnc_symbol','chromosome_name','start_position','end_position']].drop_duplicates()
-    #     genes_to_remove=[]
-    #     for idx,row in exon_filt.iterrows():
-    #         if row.hgnc_symbol in cv_dict.keys():
-    #             cv_list=cv_dict[row.hgnc_symbol]
-    #             num_vars_before_gene_start=0
-    #             num_vars_after_gene_end=0
-    #             for item in cv_list:
-    #                 if item[0]<row.start_position:
-    #                     num_vars_before_gene_start+=1
-    #                 elif item[0]>row.end_position:
-    #                     num_vars_after_gene_end+=1
-    #             if (num_vars_before_gene_start<1) or (num_vars_after_gene_end<1):
-    #                 genes_to_remove.append(row.hgnc_symbol)
-    #     # remove genes that don't have enough variants for excision from the dictionary, so they're not passed through to excavate
-    #     for k in genes_to_remove:
-    #         cv_dict.pop(k, None)
-
-    
-    # load vcf files
-    vcf_dict={}
-    chroms = exon_df.chromosome_name.unique()
-    for chrom in chroms:
-        af_filename = os.path.join(af_file_dir, 'TGP_chr' + chrom + '_afs.txt')
-        cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
-        vcf_dict[chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt']]
-    
-    # for each gene, format its common vars where each row contains chrom & pos. We'll filter larger vcfs by this information later using bcftools
+    # set some variables
     savedir=output_dir + "/excavate/CommonVar_locs/"
     genes_w_commonVars=[]
     lowest_var_pos=[]
     highest_var_pos=[]
-    for gene,cv_list in cv_dict.items():
-        if (len(cv_list)>0):
-            if (type(cv_list[0])!=type('string')):
-                # convert the lists into a data frame
-                cv_df = pd.DataFrame(cv_list, columns=['pos','af'])
-                cur_chrom = ((exon_df[exon_df['hgnc_symbol']==gene])['chromosome_name'].values[0])
-                cv_df['chrom'] = cur_chrom
-                cv_df = cv_df.drop(labels=['af'],axis=1)
-                cv_df=cv_df[['chrom','pos']]
-                # this df of vars should already be filtered to the previously set af_threshold in the get_common_exonic_vars script
-                genes_w_commonVars.append(gene) # save the gene for later filtering
-                # save this df now for filtering vcfs
-                cv_df.to_csv(savedir + gene + '_CommonVar_locs.txt',sep='\t',index=False, header=False)
+
+    # if the current strategy is excision, run the loop below, taking into account the filtered snps that form valid excision pairs
+    if (edit_strat is not None) and (edit_strat=='excision'):
+        # load refined common variants
+        refined_vars_gene_fps=os.listdir(cv_dict_filepath)
+        for file in refined_vars_gene_fps:
+            cur_gene=file.split('_')[0]
+            with open(os.path.join(cv_dict_filepath, file), 'rb') as fp:
+                cur_snps=pickle.load(fp)
+            if len(cur_snps)>0:
+                cur_chrom = ((exon_df[exon_df['hgnc_symbol']==cur_gene])['chromosome_name'].values[0])
+                cv_df = pd.DataFrame(cur_snps, columns=['pos'])
+                genes_w_commonVars.append(cur_gene)
+                cv_df['chrom']=cur_chrom
+                cv_df = cv_df[['chrom','pos']]
+                cv_df.to_csv(savedir + cur_gene + '_CommonVar_locs.txt',sep='\t',index=False, header=False)
                 # save the upper and lower bounds of where the variants occur, plus some padding to provide ample search space for PAMs
                 lowest_var_pos.append(min(cv_df.pos)-100)
                 highest_var_pos.append(max(cv_df.pos)+100)
+
+    else:
+        # load common var dict
+        with open(cv_dict_filepath, 'rb') as fp:
+            cv_dict = pickle.load(fp)
+        
+        # load vcf files
+        vcf_dict={}
+        chroms = exon_df.chromosome_name.unique()
+        for chrom in chroms:
+            af_filename = os.path.join(af_file_dir, 'TGP_chr' + chrom + '_afs.txt')
+            cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
+            vcf_dict[chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt']]
+        
+        # for each gene, format its common vars where each row contains chrom & pos. We'll filter larger vcfs by this information later using bcftools
+        for gene,cv_list in cv_dict.items():
+            if (len(cv_list)>0):
+                if (type(cv_list[0])!=type('string')):
+                    # convert the lists into a data frame
+                    cv_df = pd.DataFrame(cv_list, columns=['pos','af'])
+                    cur_chrom = ((exon_df[exon_df['hgnc_symbol']==gene])['chromosome_name'].values[0])
+                    cv_df['chrom'] = cur_chrom
+                    cv_df = cv_df.drop(labels=['af'],axis=1)
+                    cv_df=cv_df[['chrom','pos']]
+                    # this df of vars should already be filtered to the previously set af_threshold in the get_common_exonic_vars script
+                    genes_w_commonVars.append(gene) # save the gene for later filtering
+                    # save this df now for filtering vcfs
+                    cv_df.to_csv(savedir + gene + '_CommonVar_locs.txt',sep='\t',index=False, header=False)
+                    # save the upper and lower bounds of where the variants occur, plus some padding to provide ample search space for PAMs
+                    lowest_var_pos.append(min(cv_df.pos)-100)
+                    highest_var_pos.append(max(cv_df.pos)+100)
 
     # also create a file that contains start and end coordinates of each gene, as this is also a necessary input for excavate
     savedir2=output_dir + "/excavate/input_metadata/"
