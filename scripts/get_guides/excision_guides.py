@@ -498,7 +498,7 @@ def main():
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
 
     # load the gene's targetable snps for each edit strat
-    vcf = pd.read_table(vcf_dir + "/" + gene + '_ds_guide_filtered.vcf', comment='#', header=None) # pd.read_table(vcf_dir + "/" + gene + '_guide_filtered.vcf', comment='#', header=None)
+    vcf = pd.read_table(vcf_dir + "/" + gene + '_guide_filtered.vcf', comment='#', header=None) # pd.read_table(vcf_dir + "/" + gene + '_guide_filtered.vcf', comment='#', header=None)
     vcf.columns=cols
     vcf=assert_unique_and_biallelic_vcf_values(vcf)
     print('loaded vcf')

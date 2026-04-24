@@ -1,3 +1,5 @@
+scripts/get_guides/__pycache__/
+scripts/get_hets/__pycache__/
 data/biallelic_afs/TGP_chr*_afs.txt
 data/GENCODE/gencode.v49.annotation.gtf
 data/1KG

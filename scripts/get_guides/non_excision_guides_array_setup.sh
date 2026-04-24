@@ -14,5 +14,5 @@ script_dir="$project_root/scripts"
 
 # run greedy algorithm on one gene per array job
 gene=$(awk -v row="$SGE_TASK_ID" 'NR == row {print $1}' "$unique_genes_file")
-gRNA_script="$script_dir/scripts/get_guides/non_excision_guides.py"
+gRNA_script="$script_dir/get_guides/non_excision_guides.py"
 python3 "$gRNA_script" --output_dir "$output_dir" --gene "$gene" --num_samples "$NUM_SAMPLES" --all_strats_together "$all_strats_together"
