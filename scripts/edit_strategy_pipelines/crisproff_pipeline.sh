@@ -35,7 +35,7 @@ fi
 # script to get ubiquitous promoter regions & identify common vars in them
 promoter_common_vars="$project_root/scripts/get_common_vars/epi_silencing/promoter_common_vars.sh"
 echo "Started identifying ubiquitous promoter regions & common vars..."
-qsub -sync y -l mem_free=1G -l h_rt=00:20:00 -o "$project_root/logs/out/promoter_common_vars.out" -e "$project_root/logs/err/promoter_common_vars.err" "$promoter_common_vars" "$output_dir" "$param_file" "$exon_file"
+qsub -sync y -l mem_free=1G -l h_rt=00:20:00 -o "$project_root/logs/out/promoter_common_vars_${RUN_NAME}.out" -e "$project_root/logs/err/promoter_common_vars_${RUN_NAME}.err" "$promoter_common_vars" "$output_dir" "$param_file" "$exon_file"
 echo "Finished identifiying ubiquitous promoter regions & common vars."
 
 # get number of genes that have common vars in promoter regions
@@ -54,13 +54,13 @@ echo "Finished generating common var loc files."
 excavate_vcf_creation="$project_root/scripts/format_variants/generate_filtered_vcfs.sh" # first we need to generate vcf.gz files for the genes that have variants in their ubiquitous regions
 input_metadata="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
 echo "Started creating vcf files for excavate input..."
-qsub -t 1-"$num_common_var_genes" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/filt_vcfs_crisproff.out" -e "$project_root/logs/err/filt_vcfs_crisproff.err" "$excavate_vcf_creation" "$output_dir" "$param_file" "$input_metadata"
+qsub -t 1-"$num_common_var_genes" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/filt_vcfs_crisproff_${RUN_NAME}.out" -e "$project_root/logs/err/filt_vcfs_crisproff_${RUN_NAME}.err" "$excavate_vcf_creation" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished creating excavate inputs."
 
 # script to run excavate
 run_excavate_script="$project_root/scripts/excavate/run_excavate.sh"
 echo "Started running EXCAVATE..."
-qsub -t 1-"$num_common_var_genes" -l mem_free=1G -l h_rt=00:45:00 -sync y -o "$project_root/logs/out/excavate_crisproff.out" -e "$project_root/logs/err/excavate_crisproff.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
+qsub -t 1-"$num_common_var_genes" -l mem_free=1G -l h_rt=00:45:00 -sync y -o "$project_root/logs/out/excavate_crisproff_${RUN_NAME}.out" -e "$project_root/logs/err/excavate_crisproff_${RUN_NAME}.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
 
 # generate text files for the valid guides so you can filter the vcfs accordingly
@@ -75,13 +75,20 @@ guide_based_filtering="$project_root/scripts/format_variants/position_filtering.
 genes_w_guides="$output_dir/excavate/het_individuals/metadata/genes_w_valid_guides.txt"
 num_genes_w_guides=$(awk -F'\t' '$1 != "" {n++} END{print n}' "$genes_w_guides")
 echo "Started filtering vcfs based on valid guides..."
-qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/guide_filtering_crisproff.out" -e "$project_root/logs/err/guide_filtering_crisproff.err" "$guide_based_filtering" "$output_dir" "$param_file" "$genes_w_guides"
+qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/guide_filtering_crisproff_${RUN_NAME}.out" -e "$project_root/logs/err/guide_filtering_crisproff_${RUN_NAME}.err" "$guide_based_filtering" "$output_dir" "$param_file" "$genes_w_guides"
 echo "Finished filtering vcfs based on valid guides."
+
+# script to calculate the number of heterozygous individuals for each gene, pre-excavate filtering
+get_targeted_hets_prePAM="$project_root/scripts/get_hets/get_targeted_hets_prePAM.sh"
+echo "Started calculating heterozygous individual numbers (prePAM filtering)..."
+filtered_vcf_dir="$output_dir/excavate/input_vcfs"
+gene_info="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
+qsub -l mem_free=2G -l h_rt=01:00:00 -o "$project_root/logs/out/hets_crisproff_prepam_${RUN_NAME}.out" -e "$project_root/logs/err/hets_crisproff_prepam_${RUN_NAME}.err" "$get_targeted_hets_prePAM" "$output_dir/prePAM_hets" "$param_file" "$gene_info" "$filtered_vcf_dir"
 
 # script to calculate number of heterozygous individuals for each gene
 get_targeted_hets="$project_root/scripts/get_hets/get_targeted_hets.sh"
 echo "Started calculating heterozygous indvidual numbers..."
 excavate_output_dir="$output_dir/excavate/excavate_outputs"
 filtered_vcf_dir="$output_dir/excavate/Guide_filtered_vcfs"
-qsub -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_crisproff.out" -e "$project_root/logs/err/hets_crisproff.err" "$get_targeted_hets" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
+qsub -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_crisproff_${RUN_NAME}.out" -e "$project_root/logs/err/hets_crisproff_${RUN_NAME}.err" "$get_targeted_hets" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$excavate_output_dir" "$filtered_vcf_dir"
 echo "Finished calculating heterozygous individual numbers."
