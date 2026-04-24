@@ -18,10 +18,10 @@ def parse_args():
     parser.add_argument('--output_dir', type = str, required = True, help = 'Output directory to save files to.')
     parser.add_argument('--filtered_vcf_dir',type=str,required=True,help='Excavate output directory location.')
     parser.add_argument('--exon_file', type=str,required=True,help="Exon file location.")
-    parser.add_argument('--gene_info', type=str,required=True,help="Genes with valid guides.")
     parser.add_argument('--gene', type=str, required=True, help="Curent gene name.")
     parser.add_argument('--num_samples',type=int, required=True, help="Number of samples in population we are determining number of heterozygotes in.")
     parser.add_argument('--excise_entire_gene', type=int, required=True, help="Boolean to tell us if variants should be selected such that the entire gene is excised.")
+    parser.add_argument('--valid_pairs_fp', type=str, required=True, help="Path to valid snp pairs that encompass at least one exon for each gene.")
     args = parser.parse_args()
     return args
 
@@ -136,16 +136,13 @@ def main():
     output_dir=args.output_dir
     filtered_vcf_dir=args.filtered_vcf_dir
     exon_file=args.exon_file
-    gene_info=args.gene_info
     num_samples=args.num_samples
     gene=args.gene
     excise_entire_gene=args.excise_entire_gene
-    #acceptable_overlap=args.acceptable_overlap
+    valid_pairs_fp=args.valid_pairs_fp
     
     # load exon and gene info files
     exon_df=pd.read_csv(exon_file, index_col=0,dtype={'chromosome_name':'str'})
-    gene_df=pd.read_csv(gene_info,names=['gene','chrom'],sep='\t')
-
 
     # get current gene's information
     exon_filt=exon_df[exon_df['hgnc_symbol']==gene][['hgnc_symbol','ensembl_gene_id','chromosome_name','start_position','end_position','strand']].drop_duplicates()
@@ -211,16 +208,18 @@ def main():
             vcf_filt.drop(labels=['remove_list'],inplace=True,axis=1)
             assert_uniq_val_per_row(vcf_filt, "pos") # this function checks that all numbers of the 'pos' column are unique
 
-            # create pairs of every snp represented in the set
-            snp_positions = sorted(list(vcf_filt.pos))
-            possible_snp_pairs = list(combinations(snp_positions, 2))
+            # load the gene's valid snp pairs
+            with open(os.path.join(valid_pairs_fp, gene+'_valid_snp_pairs.pkl'), 'rb') as fp:
+                valid_pairs=pickle.load(fp)
 
-            # # get the exon ranges for the current gene
-            # exon_ranges=list(set(zip(gene_exons['exon_chrom_start'], gene_exons['exon_chrom_end'])))
+            # Filter this list to just pairs that contain snps that are in the vcf
+            vcf_positions=set(vcf_filt['pos'])
+            refined_snp_list = {
+                pair for pair in valid_pairs
+                if pair[0] in vcf_positions and pair[1] in vcf_positions
+            }
 
-            # check that each pair encompasses an exon--if not, remove it from consideration
-            refined_snp_list = [x for x in possible_snp_pairs if pair_encompasses_exon_ubiquitously(x,gene_exons)]
-
+            # now loop through each passing snp pair and 
             if len(refined_snp_list)>0:
                 # proceed with greedy algorithm
 
