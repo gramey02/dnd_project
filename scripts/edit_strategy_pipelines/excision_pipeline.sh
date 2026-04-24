@@ -34,13 +34,14 @@ num_common_var_genes=$(wc -l < "$common_var_genes") # get the number of genes th
 filter_excision_snps="$project_root/scripts/format_variants/filter_excision_snps.sh"
 cv_dict_filepath="$output_dir/CommonVars/CommonVars_ALL_dict.pkl"
 echo "Filtering snps based on those that encompass exons across transcripts..."
-qsub -t 1-"$num_common_var_genes" -sync y -l mem_free=10G -l h_rt=03:00:00 -o "$project_root/logs/out/filter_excision_snps.out" -e "$project_root/logs/err/filter_excision_snps.err" "$filter_excision_snps" "$output_dir/CommonVars/refined_common_vars" "$param_file" "$cv_dict_filepath" "$exon_file" "$common_var_genes"
+qsub -t 1-"$num_common_var_genes" -sync y -l mem_free=10G -l h_rt=03:00:00 -o "$project_root/logs/out/filter_excision_snps.out" -e "$project_root/logs/err/filter_excision_snps.err" "$filter_excision_snps" "$output_dir/CommonVars/refined_common_vars" "$param_file" "$cv_dict_filepath" "$exon_file" "$common_var_genes" "$output_dir/CommonVars/valid_snp_pairs"
 echo "Finished filtering excision snps."
 
 # script to generate text files that we'll use to filter vcfs (which we'll then input into EXCAVATE)
 generate_variant_textFiles="$project_root/scripts/format_variants/generate_variant_textFiles.py"
 echo "Started generating common var loc files..."
-cv_dict_filepath="$output_dir/CommonVars/CommonVars_ALL_dict.pkl"
+#cv_dict_filepath="$output_dir/CommonVars/CommonVars_ALL_dict.pkl"
+cv_dict_filepath="$output_dir/CommonVars/refined_common_vars"
 python3 "$generate_variant_textFiles" --cv_dict_filepath "$cv_dict_filepath" --exon_file "$project_root/$exon_file" --output_dir "$output_dir" --af_file_dir "$project_root/$AF_FILE_DIR" --edit_strat "excision"
 num_common_var_genes=$(ls -1 "$output_dir/excavate/CommonVar_locs" | wc -l)
 echo "Finished generating common var loc files."
@@ -51,6 +52,16 @@ input_metadata="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
 echo "Started creating vcf files for excavate input..."
 qsub -t 1-"$num_common_var_genes" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/filt_vcfs_excision.out" -e "$project_root/logs/err/filt_vcfs_excision.err" "$excavate_vcf_creation" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished creating excavate inputs."
+
+# add a downsampling script here for certain genes
+ds_script="$project_root/scripts/format_variants/downsample_vars.py"
+input_vcf_fp="$output_dir/excavate/input_vcfs"
+valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
+common_var_locs_fp="$output_dir/excavate/CommonVar_locs"
+if [[ "$DOWNSAMPLE" == "True" ]]; then
+    python3 "$ds_script" --output_dir "$output_dir" --input_vcf_fp "$input_vcf_fp" --ds_threshold 258 --num_samples "$NUM_SAMPLES"
+    # also need to re-filter the vcf here
+fi
 
 # script to run excavate
 run_excavate_script="$project_root/scripts/excavate/run_excavate.sh"
@@ -73,9 +84,19 @@ echo "Started filtering vcfs based on valid guides..."
 qsub -t 1-"$num_genes_w_guides" -l mem_free=3G -l h_rt=02:00:00 -sync y -o "$project_root/logs/out/guide_filtering_excision.out" -e "$project_root/logs/err/guide_filtering_excision.err" "$guide_based_filtering" "$output_dir" "$param_file" "$genes_w_guides"
 echo "Finished filtering vcfs based on valid guides."
 
-# script to calculate number of heterozygous individuals that will be hit by pairs of snps (also runs greedy algorithm)
-het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
-filtered_vcf_dir="$output_dir/excavate/Guide_filtered_vcfs"
-echo "Started capturing heterozygote excision information..."
-qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_excision.out" -e "$project_root/logs/err/hets_excision.err" "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file"
-echo "Finished capturing heterozygote excision information."
+# # script to calculate the number of heterozygous individuals for each gene, pre-excavate filtering
+# get_targeted_hets_prePAM="$project_root/scripts/get_hets/het_combos_prePAM.sh"
+# echo "Started calculating heterozygous individual numbers (prePAM filtering)..."
+# filtered_vcf_dir="$output_dir/excavate/input_vcfs"
+# gene_info="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
+# num_genes_prepam=$(awk -F'\t' '$1 != "" {n++} END{print n}' "$gene_info") # get number of prepam-filtered targetable genes from gene_info
+# valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
+# qsub -t 1-"$num_genes_prepam" -l mem_free=2G -l h_rt=01:00:00 -o "$project_root/logs/out/hets_excision_prepam_${RUN_NAME}.out" -e "$project_root/logs/err/hets_excision_prepam_${RUN_NAME}.err" "$get_targeted_hets_prePAM" "$output_dir/prePAM_hets" "$param_file" "$gene_info" "$filtered_vcf_dir" "$valid_pairs_fp"
+
+# # script to calculate number of heterozygous individuals that will be hit by pairs of snps (also runs greedy algorithm)
+# het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
+# filtered_vcf_dir="$output_dir/excavate/Guide_filtered_vcfs"
+# valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
+# echo "Started capturing heterozygote excision information..."
+# qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_excision.out" -e "$project_root/logs/err/hets_excision.err" "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file" "$valid_pairs_fp"
+# echo "Finished capturing heterozygote excision information."
