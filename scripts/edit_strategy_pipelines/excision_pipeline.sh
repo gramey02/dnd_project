@@ -28,7 +28,6 @@ echo "Finished extracting common variant info."
 common_var_genes="$output_dir/CommonVars/CommonVars_VarNumOver2_summary_noIDX.txt"
 awk -F'\t' '$2+0 >= 2' "$output_dir/CommonVars/CommonVars_ALL_summary_noIDX.txt" > "$common_var_genes"
 num_common_var_genes=$(wc -l < "$common_var_genes") # get the number of genes that have common vars in them (from summary file)
-# I think the filtering in the next step is better
 
 # script to determine viable pairs of snps, to narrow down the number of snps for future steps
 filter_excision_snps="$project_root/scripts/format_variants/filter_excision_snps.sh"
@@ -53,14 +52,21 @@ echo "Started creating vcf files for excavate input..."
 qsub -t 1-"$num_common_var_genes" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/filt_vcfs_excision.out" -e "$project_root/logs/err/filt_vcfs_excision.err" "$excavate_vcf_creation" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished creating excavate inputs."
 
-# add a downsampling script here for certain genes
+# add a downsampling script here for certain genes - right now just DCC
 ds_script="$project_root/scripts/format_variants/downsample_vars.py"
 input_vcf_fp="$output_dir/excavate/input_vcfs"
 valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
 common_var_locs_fp="$output_dir/excavate/CommonVar_locs"
 if [[ "$DOWNSAMPLE" == "True" ]]; then
+    module load CBI bcftools
     python3 "$ds_script" --output_dir "$output_dir" --input_vcf_fp "$input_vcf_fp" --ds_threshold 258 --num_samples "$NUM_SAMPLES"
     # also need to re-filter the vcf here
+    output_vcf="$output_dir/excavate/input_vcfs/DCC_CommonVar_filtered.vcf.gz"
+    biallelic_snps="$project_root/$BIALLELIC_SNPS_DIR/TGP_chr18_biallelicSNPs.vcf.gz"
+    common_vars_pos="$output_dir/excavate/CommonVar_locs/DCC_CommonVar_locs.txt"
+    bcftools view -T "$common_vars_pos" "$biallelic_snps" -Oz -o "$output_vcf"
+    # create index file
+    bcftools index -t "$output_vcf"
 fi
 
 # script to run excavate
@@ -84,19 +90,21 @@ echo "Started filtering vcfs based on valid guides..."
 qsub -t 1-"$num_genes_w_guides" -l mem_free=3G -l h_rt=02:00:00 -sync y -o "$project_root/logs/out/guide_filtering_excision.out" -e "$project_root/logs/err/guide_filtering_excision.err" "$guide_based_filtering" "$output_dir" "$param_file" "$genes_w_guides"
 echo "Finished filtering vcfs based on valid guides."
 
-# # script to calculate the number of heterozygous individuals for each gene, pre-excavate filtering
-# get_targeted_hets_prePAM="$project_root/scripts/get_hets/het_combos_prePAM.sh"
-# echo "Started calculating heterozygous individual numbers (prePAM filtering)..."
-# filtered_vcf_dir="$output_dir/excavate/input_vcfs"
-# gene_info="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
-# num_genes_prepam=$(awk -F'\t' '$1 != "" {n++} END{print n}' "$gene_info") # get number of prepam-filtered targetable genes from gene_info
-# valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
-# qsub -t 1-"$num_genes_prepam" -l mem_free=2G -l h_rt=01:00:00 -o "$project_root/logs/out/hets_excision_prepam_${RUN_NAME}.out" -e "$project_root/logs/err/hets_excision_prepam_${RUN_NAME}.err" "$get_targeted_hets_prePAM" "$output_dir/prePAM_hets" "$param_file" "$gene_info" "$filtered_vcf_dir" "$valid_pairs_fp"
+# script to calculate the number of heterozygous individuals for each gene, pre-excavate filtering
+get_targeted_hets_prePAM="$project_root/scripts/get_hets/het_combos_prePAM.sh"
+echo "Started calculating heterozygous individual numbers (prePAM filtering)..."
+filtered_vcf_dir="$output_dir/excavate/input_vcfs"
+gene_info="$output_dir/excavate/input_metadata/excavate_run_metadata.txt"
+num_genes_prepam=$(awk -F'\t' '$1 != "" {n++} END{print n}' "$gene_info") # get number of prepam-filtered targetable genes from gene_info
+valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
+qsub -t 1-"$num_genes_prepam" -l mem_free=2G -l h_rt=01:00:00 -o "$project_root/logs/out/hets_excision_prepam_${RUN_NAME}.out" -e "$project_root/logs/err/hets_excision_prepam_${RUN_NAME}.err" "$get_targeted_hets_prePAM" "$output_dir/prePAM_hets" "$param_file" "$gene_info" "$filtered_vcf_dir" "$valid_pairs_fp"
 
-# # script to calculate number of heterozygous individuals that will be hit by pairs of snps (also runs greedy algorithm)
-# het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
-# filtered_vcf_dir="$output_dir/excavate/Guide_filtered_vcfs"
-# valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
-# echo "Started capturing heterozygote excision information..."
-# qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_excision.out" -e "$project_root/logs/err/hets_excision.err" "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file" "$valid_pairs_fp"
-# echo "Finished capturing heterozygote excision information."
+# script to calculate number of heterozygous individuals that will be hit by pairs of snps (also runs greedy algorithm)
+het_combos_script="$project_root/scripts/get_hets/het_combos.sh"
+filtered_vcf_dir="$output_dir/excavate/Guide_filtered_vcfs"
+valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
+genes_w_guides="$output_dir/excavate/het_individuals/metadata/genes_w_valid_guides.txt"
+num_genes_w_guides=$(awk -F'\t' '$1 != "" {n++} END{print n}' "$genes_w_guides")
+echo "Started capturing heterozygote excision information..."
+qsub -t 1-"$num_genes_w_guides" -l mem_free=2G -l h_rt=01:00:00 -sync y -o "$project_root/logs/out/hets_excision.out" -e "$project_root/logs/err/hets_excision.err" "$het_combos_script" "$output_dir/excavate/het_individuals" "$param_file" "$genes_w_guides" "$filtered_vcf_dir" "$exon_file" "$valid_pairs_fp"
+echo "Finished capturing heterozygote excision information."
