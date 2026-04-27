@@ -45,37 +45,56 @@ fi
 # now call shell scripts to run sub-pipelines for each of the editing strategies and pass in the set parameters
 # parallelized so they can run at the same time
 
+# helper function to parse edit strategies array
+contains() {
+    local seeking="$1"; shift
+    for element in "$@"; do
+        [[ "$element" == "$seeking" ]] && return 0
+    done
+    return 1
+}
+
 # indel pipeline
-echo "Running indel pipeline..."
-indel_pipeline="$script_dir/edit_strategy_pipelines/indel_pipeline.sh"
-indel_output_dir=$output_dir"/indels"
-qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/indel_pipeline.out" -e "$project_root/logs/err/indel_pipeline.err" "$indel_pipeline" "$indel_output_dir" "$new_param_file"
-echo "Finished running indel pipeline."
+if contains "indels" "${EDIT_STRATS[@]}"; then
+    echo "Running indel pipeline..."
+    indel_pipeline="$script_dir/edit_strategy_pipelines/indel_pipeline.sh"
+    indel_output_dir=$output_dir"/indels"
+    qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/indel_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/indel_pipeline_${RUN_NAME}.err" "$indel_pipeline" "$indel_output_dir" "$new_param_file"
+    echo "Finished running indel pipeline."
+fi
 
-# # crisproff pipeline
-# echo "Running crisproff pipeline..."
-# crisproff_pipeline="$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh"
-# crisproff_output_dir=$output_dir"/CRISPRoff"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/crisproff_pipeline.out" -e "$project_root/logs/err/crisproff_pipeline.err" "$crisproff_pipeline" "$crisproff_output_dir" "$new_param_file"
-# echo "Finished running crisproff pipeline."
+# crisproff pipeline
+if contains "CRISPRoff" "${EDIT_STRATS[@]}"; then
+    echo "Running crisproff pipeline..."
+    crisproff_pipeline="$script_dir/edit_strategy_pipelines/crisproff_pipeline.sh"
+    crisproff_output_dir=$output_dir"/CRISPRoff"
+    qsub -cwd -l mem_free=1G -l h_rt=06:00:00 -o "$project_root/logs/out/crisproff_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/crisproff_pipeline_${RUN_NAME}.err" "$crisproff_pipeline" "$crisproff_output_dir" "$new_param_file"
+    echo "Finished running crisproff pipeline."
+fi
 
-# # acceptor base edits pipeline
-# echo "Running acceptor base edits pipeline..."
-# acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
-# acceptor_output_dir=$output_dir"/acceptor_base_edits"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/acceptor_pipeline.out" -e "$project_root/logs/err/acceptor_pipeline.err" "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
-# echo "Finished running acceptor pipeline."
+# acceptor base edits pipeline
+if contains "acceptor_base_edits" "${EDIT_STRATS[@]}"; then
+    echo "Running acceptor base edits pipeline..."
+    acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
+    acceptor_output_dir=$output_dir"/acceptor_base_edits"
+    qsub -cwd -l mem_free=1G -l h_rt=06:00:00 -o "$project_root/logs/out/acceptor_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/acceptor_pipeline_${RUN_NAME}.err" "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
+    echo "Finished running acceptor pipeline."
+fi
 
-# # donor base edits pipeline
-# echo "Running donor base edits pipeline..."
-# donor_pipeline="$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh"
-# donor_output_dir=$output_dir"/donor_base_edits"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/donor_pipeline.out" -e "$project_root/logs/err/donor_pipeline.err" "$donor_pipeline" "$donor_output_dir" "$new_param_file"
-# echo "Finished running donor pipeline."
+# donor base edits pipeline
+if contains "donor_base_edits" "${EDIT_STRATS[@]}"; then
+    echo "Running donor base edits pipeline..."
+    donor_pipeline="$script_dir/edit_strategy_pipelines/donor_baseEdit_pipeline.sh"
+    donor_output_dir=$output_dir"/donor_base_edits"
+    qsub -cwd -l mem_free=1G -l h_rt=06:00:00 -o "$project_root/logs/out/donor_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/donor_pipeline_${RUN_NAME}.err" "$donor_pipeline" "$donor_output_dir" "$new_param_file"
+    echo "Finished running donor pipeline."
+fi
 
-# # excision pipeline
-# echo "Running excision pipeline..."
-# excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
-# excision_output_dir=$output_dir"/excision"
-# qsub -cwd -l mem_free=1G -l h_rt=04:00:00 -o "$project_root/logs/out/excision_pipeline.out" -e "$project_root/logs/err/excision_pipeline.err" "$excision_pipeline" "$excision_output_dir" "$new_param_file"
-# echo "Finished running excision pipeline."
+# excision pipeline
+if contains "excision" "${EDIT_STRATS[@]}"; then
+    echo "Running excision pipeline..."
+    excision_pipeline="$script_dir/edit_strategy_pipelines/excision_pipeline.sh"
+    excision_output_dir=$output_dir"/excision"
+    qsub -cwd -l mem_free=1G -l h_rt=08:00:00 -o "$project_root/logs/out/excision_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/excision_pipeline_${RUN_NAME}.err" "$excision_pipeline" "$excision_output_dir" "$new_param_file"
+    echo "Finished running excision pipeline."
+fi
