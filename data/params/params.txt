@@ -66,6 +66,6 @@ EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "exci
 
 # params for storing all of the outputs
 PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
-RUN_NAME="RUN_04_15_26" # "RUN_$(date +%m_%d_%y)" # run name is the current date
+RUN_NAME="RUN_04_23_26" # "RUN_$(date +%m_%d_%y)" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
