@@ -77,7 +77,7 @@ def create_haplotype_df(vcf, string_list):
         
         if df_het_count!=vcf_het_count:
             raise ValueError(
-            f"Count mismatch (SNP: {col}): VCF_het_count={vcf_count}, DF_het_count={df_count}"
+            f"Count mismatch (SNP: {col}): VCF_het_count={vcf_het_count}, DF_het_count={df_het_count}"
         )
 
     return df
@@ -87,7 +87,7 @@ def base_sample(idx):
 
 def iterative_pick_and_prune_with_tracking(df, gene, output_dir, strat):
     # check if a checkpoint already exists
-    ckpt_dir=os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'checkpoints', gene + '_'+strat+'_checkpoint.pkl')
+    ckpt_dir=os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'non_excision_guides', 'checkpoints', gene + '_'+strat+'_checkpoint.pkl')
     if os.path.exists(ckpt_dir):
         picks, rows_removed_per_iter, samples_removed_per_iter, df, remaining_by_sample, iteration = load_checkpoint_non_excision(ckpt_dir)
     # otherwise start from the inputted df
@@ -255,7 +255,7 @@ def main():
 
         if vcf is None or vcf.empty:
             extra="No vcf loaded for all_non_excision_strats."
-            log_dir = os.path.join(output_dir, "summary_files/cross_strat_gRNAs/logs")
+            log_dir = os.path.join(output_dir, "summary_files/cross_strat_gRNAs/non_excision_guides/logs")
             log_fp = os.path.join(log_dir, f"{gene}.log")
             if not os.path.exists(log_fp):
                 with open(log_fp, "w") as f:
@@ -286,7 +286,7 @@ def main():
             result = iterative_pick_and_prune_with_tracking(df, gene, output_dir, 'all_strats')
             summary_df = reformat_non_excision_summary_df(result)
 
-            summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'results',gene+'_non_excision_all_strats_gRNAs.csv'))
+            summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'non_excision_guides', 'results',gene+'_non_excision_all_strats_gRNAs.csv'))
             # save the resulting summary df below
             if summary_df is not None:
                 # note if the job completed or failed
@@ -294,6 +294,7 @@ def main():
                     output_dir,
                     "summary_files",
                     "cross_strat_gRNAs",
+                    "non_excision_guides",
                     "logs",
                     f"{gene}.DONE_all_non_excision"
                 )
@@ -328,7 +329,7 @@ def main():
             result = iterative_pick_and_prune_with_tracking(df, gene, output_dir, strat)
             summary_df = reformat_non_excision_summary_df(result)
 
-            summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'results',gene+'_' + strat + '_gRNAs.csv'))    
+            summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'non_excision_guides', 'results',gene+'_' + strat + '_gRNAs.csv'))    
             # note if it finished running
             if summary_df is not None:
                 # note if the job completed or failed
@@ -336,6 +337,7 @@ def main():
                     output_dir,
                     "summary_files",
                     "cross_strat_gRNAs",
+                    "non_excision_guides",
                     "logs",
                     f"{gene}.DONE_{strat}"
                 )

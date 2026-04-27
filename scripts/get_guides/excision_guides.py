@@ -80,7 +80,7 @@ def create_haplotype_df(vcf, string_list):
         
         if df_het_count!=vcf_het_count:
             raise ValueError(
-            f"Count mismatch (SNP: {col}): VCF_het_count={vcf_count}, DF_het_count={df_count}"
+            f"Count mismatch (SNP: {col}): VCF_het_count={vcf_het_count}, DF_het_count={df_het_count}"
         )
 
     return df
@@ -458,7 +458,7 @@ def load_checkpoint(checkpoint_dir):
 
 def create_checkpoint(allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter, h_index, col_arrays, remaining_by_sample, targeted_alleles, iteration, gene, output_dir):
     ckpt_list=[allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter, h_index, col_arrays, remaining_by_sample, targeted_alleles, iteration]
-    checkpoint_dir=output_dir + '/summary_files/cross_strat_gRNAs/checkpoints/' + gene + '_ckpt.pkl'
+    checkpoint_dir=output_dir + '/summary_files/cross_strat_gRNAs/excision_guides/checkpoints/' + gene + '_ckpt.pkl'
     with open(checkpoint_dir, 'wb') as fp:
         pickle.dump(ckpt_list, fp)
     return None
@@ -509,7 +509,7 @@ def main():
     valid_pairs=set(valid_pairs) # this allows for faster lookup in the subsequent functions
 
     # load a checkpoint if it already exists
-    ckpt_dir=output_dir + '/summary_files/cross_strat_gRNAs/checkpoints/' + gene + '_ckpt.pkl'
+    ckpt_dir=output_dir + '/summary_files/cross_strat_gRNAs/excision_guides/checkpoints/' + gene + '_ckpt.pkl'
     if os.path.exists(ckpt_dir):
         allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter, h_index, col_arrays, remaining_by_sample, targeted_alleles, iteration = load_checkpoint(ckpt_dir)
     else:
@@ -615,7 +615,7 @@ def main():
     summary_df = create_summary_df(allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter)
 
     # save the summary file
-    summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'results',gene+'_excision_gRNAs.csv'))
+    summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'excision_guides','results',gene+'_excision_gRNAs.csv'))
     # note if it finished running
     if summary_df is not None:
         # note if the job completed or failed
@@ -623,6 +623,7 @@ def main():
             output_dir,
             "summary_files",
             "cross_strat_gRNAs",
+            'excision_guides',
             "logs",
             f"{gene}.DONE_excision"
         )
@@ -633,6 +634,7 @@ def main():
             output_dir,
             "summary_files",
             "cross_strat_gRNAs",
+            'excision_guides',
             "logs",
             f"{gene}.FAIL_excision"
         )

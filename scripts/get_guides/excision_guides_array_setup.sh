@@ -16,7 +16,7 @@ script_dir="$project_root/scripts"
 # Resolve the one gene assigned to this local loop iteration.
 gene=$(awk -v row="$SGE_TASK_ID" 'NR == row {print $1}' "$unique_genes_file")
 vcf_dir="$output_dir/excision/excavate/Guide_filtered_vcfs" # "$OUTPUT_DIR$RUN_NAME/summary_files/cross_strat_gRNAs/downsampled_vcfs"
-OUTPUT_FILE="$output_dir/summary_files/cross_strat_gRNAs/results/${gene}_excision_gRNAs.csv"
+OUTPUT_FILE="$output_dir/summary_files/cross_strat_gRNAs/excision_guides/results/${gene}_excision_gRNAs.csv"
 
 # run greedy algorithm on each gene, with max 50 iterations
 if [ ! -f "$OUTPUT_FILE" ]; then

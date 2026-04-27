@@ -20,15 +20,15 @@ mkdir_if_missing() {
   local d="$1"
   mkdir -p "$d"
 }
-mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs"
-mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/metadata"
-mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/checkpoints"
-mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/results"
-mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/logs"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides/metadata"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides/checkpoints"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides/results"
+mkdir_if_missing "$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides/logs"
 
 # merge the information on genes targetable by these strategies into one file
 BASE="$output_dir"
-merged_fp="$output_dir/summary_files/cross_strat_gRNAs/metadata/merged_genes_w_valid_guides_nonex.txt"
+merged_fp="$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides/metadata/merged_genes_w_valid_guides_nonex.txt"
 
 > "$merged_fp"  # truncate/create file
 
@@ -47,7 +47,7 @@ for strat in indels CRISPRoff acceptor_base_edits donor_base_edits; do
 done
 
 # get the unique genes from the file
-unique_genes_file="$output_dir/summary_files/cross_strat_gRNAs/metadata/unique_genes_with_valid_guides_non_excision.txt"
+unique_genes_file="$output_dir/summary_files/cross_strat_gRNAs/non_excision_guides/metadata/unique_genes_with_valid_guides_non_excision.txt"
 cut -f1 "$merged_fp" | sort -u > "$unique_genes_file"
 num_unique_genes=$(wc -l < "$unique_genes_file")
 
