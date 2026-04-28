@@ -14,6 +14,7 @@ from ast import literal_eval
 import gzip
 import argparse
 import time
+import pysam
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -22,6 +23,9 @@ def parse_args():
     parser.add_argument('--gene', type=str,required=True,help="Current gene name.")
     parser.add_argument('--ref_genome_fasta', type=str, required=True, help='Reference genome fasta file path.')
     parser.add_argument('--bt_dir', type=str, required=True, help='Browswer track results directory')
+    parser.add_argument('--exon_file', type=str, required=True, help='Exon information across genes.')
+    parser.add_argument('--sample_map', type=str, required=True, help='Filepath mapping sampled IDs to more specific sample names.')
+    parser.add_argument('--rsID_fp', type=str, required=True, help='map between position and rsID')
     args = parser.parse_args()
     return args
 
@@ -33,6 +37,9 @@ def main():
     run_name=args.run_name
     gene=args.gene
     ref_genome_fasta=args.ref_genome_fasta
+    exon_file=args.exon_file
+    sample_map_fp=args.sample_map
+    rsID_fp=args.rsID_fp
     strats=['indels','CRISPRoff','donor_base_edits', 'acceptor_base_edits','excision']
 
 
@@ -61,8 +68,17 @@ def main():
                 with open(excision_path, 'rb') as fp:
                     excision_snps = pickle.load(fp)
                 if len(excision_snps)>0:
-                    excision_df = pd.DataFrame(excision_snps, columns=['pos','af'])
-                    excision_df['edit_strat']=strat
+                    excision_df = pd.DataFrame(sorted(excision_snps), columns=['pos'])
+                    # load the file with allele frequencies
+                    with open(os.path.join(results_dir, run_name, strat, 'CommonVars','CommonVars_ALL_dict.pkl'), 'rb') as fp:
+                        af_info = pickle.load(fp)
+                    # extract allele info for the relevant genes
+                    cur_gene_afs = af_info.get(gene, [])
+                    # filter to just the positions in excision_snps set
+                    filtered_pos = [x for x in cur_gene_afs if x[0] in excision_snps]
+                    # now convert to df
+                    excision_df = pd.DataFrame(filtered_pos, columns=['pos','af'])
+                    excision_df['edit_strat'] = strat
                     pre_pam_frames.append(excision_df)
                 
         # load any indel snps respecting NMD induction
@@ -144,10 +160,10 @@ def main():
     ref=[]
     for strat in strats:
         
-        vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf')
+        vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf.gz')
         if os.path.exists(vcf_fp) is False:
             continue
-        vcf = pd.read_table(vcf_fp, comment='#', header=None)
+        vcf = pd.read_table(vcf_fp, comment='#', header=None, compression='gzip')
         vcf.columns=cols
         vcf = assert_unique_and_biallelic_vcf_values(vcf)
         passing_snps.extend(vcf.pos)
@@ -224,10 +240,10 @@ def main():
     # load vcf for each strategy
     vcf_combined = []
     for strat in strats:
-        vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf')
+        vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf.gz')
         if os.path.exists(vcf_fp) is False:
             continue
-        cur_vcf = pd.read_table(vcf_fp, comment='#', header=None)
+        cur_vcf = pd.read_table(vcf_fp, comment='#', header=None, compression='gzip')
         cur_vcf.columns=cols
         vcf_combined.append(cur_vcf)
     if len(vcf_combined) > 0:
@@ -401,9 +417,18 @@ def main():
     postPAM_snps = postPAM_snps.merge(final_df, on='pos',how='left')
 
     ## Finally lets merge pre- and post-PAM information
+
+    # standardize data types for the merge
     postPAM_snps['CRISPR_Cas9_targetable']=True
     prePAM_snps = coerce_pos_numeric(prePAM_snps, 'pos')
     postPAM_snps = coerce_pos_numeric(postPAM_snps, 'pos')
+    prePAM_snps['af'] = pd.to_numeric(prePAM_snps['af'], errors='coerce')
+    postPAM_snps['af'] = pd.to_numeric(postPAM_snps['af'], errors='coerce')
+    for col in ['ref', 'alt', 'edit_strat']:
+        prePAM_snps[col] = prePAM_snps[col].astype('string')
+        postPAM_snps[col] = postPAM_snps[col].astype('string')
+
+    # merge
     all_snps = prePAM_snps.merge(postPAM_snps, on=['pos','af','ref','alt','edit_strat','heterozygote_freq',
                                                 'het_num','homo_ref_freq','homo_ref_num','homo_alt_freq','homo_alt_num'],
                                 how='outer')
@@ -417,7 +442,6 @@ def main():
                                 'homo_alt_num','CRISPR_Cas9_targetable','gRNA_sequence','gRNA_id']]
 
     # get current chromosome information
-    exon_file=os.path.join(results_dir,run_name,"filtered_transcripts/filtered_exon_info.csv")
     exon_df=pd.read_csv(exon_file,index_col=0,dtype={"chromosome_name":"str"})
     cur_gene_chrom = exon_df[exon_df['hgnc_symbol']==gene]['chromosome_name'].values[0]
     # replace NAs in certain places with more descriptive logic
@@ -426,7 +450,7 @@ def main():
 
 
     # Assign colors to snps
-    maf_map={0.1:'106,109,133', 0.2:'0,26,255', 0.3:'0,26,255', 0.4:'0,0,0', 0.5:'0,0,0'}
+    maf_map={0.1:'106,109,133', 0.2:'0,0,0', 0.3:'0,0,0', 0.4:'0,26,255', 0.5:'0,26,255'} # grey, black, blue
     all_snps_reorder['MAF'] = np.minimum(all_snps_reorder['af'], 1 - all_snps_reorder['af'])
     colors=[]
     for idx,row in all_snps_reorder.iterrows():
@@ -461,11 +485,12 @@ def main():
     all_snps_reorder['formatted_genos'] = all_snps_reorder.apply(
         lambda r:
             f"Heterozygous ({r.ref}{r.alt}) {int(r.heterozygote_freq * 100)}% ({r.het_num}/2548), "
-            f"Homozygous ref ({r.ref}{r.ref}) {int(r.homo_ref_freq * 100)}% ({r.homo_ref_num}/2548), "
-            f"Homozygous alt ({r.alt}{r.alt}) {int(r.homo_alt_freq * 100)}% ({r.homo_alt_num}/2548)",
+            + f"Homozygous ref ({r.ref}{r.ref}) {int(r.homo_ref_freq * 100)}% ({r.homo_ref_num}/2548), "
+            + f"Homozygous alt ({r.alt}{r.alt}) {int(r.homo_alt_freq * 100)}% ({r.homo_alt_num}/2548)",
         axis=1
     )
 
+    
     ## Include population-specific frequencies
     # vcf formatting info
     num_samples=2548
@@ -489,10 +514,10 @@ def main():
     full_vcf = []
     for strat in strats:
         
-        vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf')
+        vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf.gz')
         if os.path.exists(vcf_fp) is False:
             continue
-        cur_vcf = pd.read_table(vcf_fp, skiprows=23)
+        cur_vcf = pd.read_table(vcf_fp, skiprows=23, compression='gzip')
         cur_vcf = assert_unique_and_biallelic_vcf_values(cur_vcf)
         full_vcf.append(cur_vcf)
     if len(full_vcf) > 0:
@@ -520,23 +545,17 @@ def main():
         # get sample names
         sample_names = list(full_vcf.columns[9:])
     # have a map of which sample belongs to which super-population
-    sample_map_df = pd.read_table("/wynton/home/capra/gramey02/ConklinCollab/data/dHS_and_related_GeneSets/Original_GeneSets/2025_11_13/igsr_samples.tsv")
+    sample_map_df = pd.read_table(sample_map_fp)
     sample_map = dict(zip(sample_map_df['Sample name'], sample_map_df['Superpopulation code']))
     # filter dictionary accordingly
     filt_map = {k: v for k, v in sample_map.items() if k in sample_names}
     # now calculate
     pop_snp_dict={}
     for pop in ['AFR', 'AMR', 'EAS', 'EUR', 'EUR,AFR', 'SAS']:
-        # get sample names for the current pop
-        fixed_cols = list(full_vcf.columns[0:9])
-        pop_filt_dict = {k: v for k, v in filt_map.items() if v in pop}
-        cur_sample_cols=list(pop_filt_dict.keys())
-        pop_size=len(cur_sample_cols)
-        fixed_cols.extend(cur_sample_cols)
-        # filter just to samples in the vcf and ones of that belong to the current pop
         if full_vcf.empty:
             pop_snp_dict[pop] = pd.DataFrame({
                 'pos'+pop:[],
+                'af'+pop:[],
                 'pop_size'+pop:[],
                 'het_freq'+pop:[],
                 'het_num'+pop:[],
@@ -546,6 +565,15 @@ def main():
                 'homo_alt_num'+pop:[]
             })
             continue
+        
+        # get sample names for the current pop
+        fixed_cols = list(full_vcf.columns[0:9])
+        pop_filt_dict = {k: v for k, v in filt_map.items() if v in pop}
+        cur_sample_cols=list(pop_filt_dict.keys())
+        pop_size=len(cur_sample_cols)
+        fixed_cols.extend(cur_sample_cols)
+        # filter just to samples in the vcf and ones of that belong to the current pop
+        
         pop_vcf = full_vcf[fixed_cols]
         # change first 9 columns case for function use
         pop_vcf.columns = ['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + list(pop_vcf.columns[9:])
@@ -561,6 +589,7 @@ def main():
         
         # set up variables for storage
         snp_list=[]
+        af_list=[]
         het_freq=[]
         het_num=[]
         homo_ref_freq=[]
@@ -569,7 +598,11 @@ def main():
         homo_alt_num=[]
         # combine the data into general frequencies
         for snp,het_list in het_dict.items():
+            # skips EUR,AFR merged pop
+            if pop+'_AF' not in info_df.columns:
+                continue
             snp_list.append(snp)
+            af_list.append(info_df[info_df['pos']==snp][pop+'_AF'].values[0])
             het_num.append(len(het_list))
             het_freq.append(len(het_list)/pop_size if pop_size > 0 else np.nan)
             homo_ref_num.append(len(ref_hom_dict[snp]))
@@ -578,6 +611,7 @@ def main():
             homo_alt_freq.append(len(alt_hom_dict[snp])/pop_size if pop_size > 0 else np.nan)
         cur_pop_df = pd.DataFrame({
             'pos'+pop:snp_list,
+            'af'+pop:af_list,
             'pop_size'+pop:pop_size,
             'het_freq'+pop:het_freq,
             'het_num'+pop:het_num,
@@ -589,6 +623,7 @@ def main():
         # store these variables for each population
         pop_snp_dict[pop]=cur_pop_df
         #all_snps_reorder = all_snps_reorder.merge(cur_pop_df, on=['pos'])
+        
     # format the data frame for adding new columns
     all_snps_reorder['gRNA_id'] = all_snps_reorder['gRNA_id'].apply(str)
     all_snps_reorder['gRNA_sequence'] = all_snps_reorder['gRNA_sequence'].apply(str)
@@ -622,17 +657,15 @@ def main():
         )
 
     # Finally, get the rsIDs
-    file_path = '/wynton/group/capra/data/gnomAD_v4.1.0_PASS_SNVs_chr_pos_rsID_mapping/gnomAD_4.1.0_PASS_SNVs_chr' + str(cur_gene_chrom) + '_pos_rsIDs.pkl.gz'
-
     rsIDs=[]
-    if os.path.exists(file_path):
+    if os.path.exists(rsID_fp):
         data = None
         max_attempts = 10
         retry_delay_seconds = 2
         for attempt in range(1, max_attempts + 1):
             try:
                 # Open the file in read-binary mode ('rb')
-                with gzip.open(file_path, 'rb') as f:
+                with gzip.open(rsID_fp, 'rb') as f:
                     # Load the data using pickle.load
                     data = pickle.load(f)
                 break
@@ -654,7 +687,7 @@ def main():
                     cur_result = cur_result.split(',')[0]
                 rsIDs.append(cur_result)
     else:
-        print(f"WARNING: rsID mapping file not found for chromosome {cur_gene_chrom}: {file_path}")
+        print(f"WARNING: rsID mapping file not found for chromosome {cur_gene_chrom}: {rsID_fp}")
         rsIDs = [np.nan] * len(asr)
     asr['rsID']=rsIDs
     # format the alleles
@@ -680,7 +713,6 @@ def main():
     asr['edit_strat_general_str'] = asr['edit_strat_general'].apply(lambda x: ", ".join(sorted(x)))
 
     # get 25 nucleotides +/- on either side of the variant
-    import pysam
     fasta_filepath = ref_genome_fasta # "/wynton/group/capra/data/hg38_fasta/2022-03-14/hg38.fa.gz"
     fasta_open = pysam.Fastafile(fasta_filepath) # open the fasta file for an individual sample
     # get the position of the variants
@@ -736,7 +768,7 @@ def main():
     # save
     # make path if it doesn't already exists
     bt_dir=args.bt_dir
-    new_directory_name=os.path.join(bt_dir, 'bed_files', 'per_gene_files', gene)
+    new_directory_name=os.path.join(bt_dir, 'per_gene_files', gene)
     try:
         os.makedirs(new_directory_name, exist_ok=True)
         print(f"Directory '{new_directory_name}' created successfully or already exists.")
@@ -776,8 +808,10 @@ def main():
     )
     """
 
-    with open(os.path.join(new_directory_name, gene + '_ng.as'), "w") as f:
-        f.write(as_text)
+    # write one .as file for bigBed conversion
+    if os.path.exists(os.path.join(bt_dir, 'metadata', 'bed_col_descriptors.as'))==False:
+        with open(os.path.join(bt_dir, 'metadata', 'bed_col_descriptors.as'), "w") as f:
+            f.write(as_text)
 
 
 if __name__=="__main__":
