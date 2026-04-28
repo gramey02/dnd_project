@@ -61,6 +61,10 @@ EXCISE_ENTIRE_GENE=0 # boolean: if true, pipeline considers only genetic variant
 NUM_SAMPLES=2548 # int: number of samples in a population. Commonly the 1000Genomes population, that we're determining number of heterozygotes in
 FILTER_OUT_NEARBY_GENES=1 # boolean: if true, pipeline restricts excision window by removing nearby protein coding gene coordinates from excision window
 
+# params for browser track pipeline
+SAMPLE_MAP="data/1KG_sample_names/igsr_samples.tsv"
+RSID_MAPS="data/rsID_maps"
+
 # params to tell the file which editing strategies to run
 EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision")
 
