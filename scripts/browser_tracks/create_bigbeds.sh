@@ -216,7 +216,7 @@ EOF
 
 # activate conda environment where bigBed conversion package is loaded
 module load CBI miniforge3
-conda activate dnscripts
+conda activate merged_env # dnscripts
 
 # Locate combined bed file
 combined_bed="$bt_dir/all_genes_together/all_genes.bed"
