@@ -1,17 +1,27 @@
-name: excavate
+name: merged_env
+
 channels:
   - conda-forge
   - bioconda
   - r
   - defaults
+
 dependencies:
+  - python>=3.9,<3.13
   - bcftools
   - bedtools
   - biopython
+  - notebook
   - numpy
   - pandas
-  - pip
+  - matplotlib
+  - obonet
+  - statsmodels
+  - scanpy
+  - pyarrow
   - pyfaidx
-  - python[version='>=3.9,<3.13']
   - regex
-prefix: /wynton/home/capra/gramey02/.conda/envs/excavate
+  - ucsc-bedtobigbed
+  - ucsc-liftover
+  - pyliftover
+  - pip
