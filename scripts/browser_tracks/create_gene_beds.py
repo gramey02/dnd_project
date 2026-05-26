@@ -450,21 +450,24 @@ def main():
 
 
     # Assign colors to snps
-    maf_map={0.1:'106,109,133', 0.2:'0,0,0', 0.3:'0,0,0', 0.4:'0,26,255', 0.5:'0,26,255'} # grey, black, blue
+    maf_map={0.1:'0,0,0', 0.2:'0,0,0', 0.3:'0,26,255', 0.4:'0,26,255', 0.5:'0,26,255'} # grey, black, blue
     all_snps_reorder['MAF'] = np.minimum(all_snps_reorder['af'], 1 - all_snps_reorder['af'])
     colors=[]
     for idx,row in all_snps_reorder.iterrows():
-        cur_maf = round(row.MAF,2)
-        if cur_maf>=0.5:
-            colors.append(maf_map[0.5])
-        elif cur_maf>=0.4:
-            colors.append(maf_map[0.4])
-        elif cur_maf>=0.3:
-            colors.append(maf_map[0.3])
-        elif cur_maf>=0.2:
-            colors.append(maf_map[0.2])
-        elif cur_maf>=0.1:
-            colors.append(maf_map[0.1])
+        if row.edit_strat=="{'excision'}":
+            colors.append('211,211,211')
+        else:
+            cur_maf = round(row.MAF,2)
+            if cur_maf>=0.5:
+                colors.append(maf_map[0.5])
+            elif cur_maf>=0.4:
+                colors.append(maf_map[0.4])
+            elif cur_maf>=0.3:
+                colors.append(maf_map[0.3])
+            elif cur_maf>=0.2:
+                colors.append(maf_map[0.2])
+            elif cur_maf>=0.1:
+                colors.append(maf_map[0.1])
         # else:
         #     print(cur_maf)
         #     print(round(cur_maf,2))
@@ -742,7 +745,7 @@ def main():
         'thickStart':all_snps_reorder['pos']-1,
         'thickEnd':all_snps_reorder['pos'],
         'itemRgb':all_snps_reorder['itemRgB'],
-        'Description': ['A therapeutically editable common variant for the DnD gene ' + gene] * len(all_snps_reorder['pos']),
+        'Description': ['A therapeutically editable common variant for the D&D gene ' + gene] * len(all_snps_reorder['pos']),
         'Ref/Alt':all_snps_reorder['ref']+'/'+all_snps_reorder['alt'],
         'AF':all_snps_reorder['af'].round(2),
         'MAF': all_snps_reorder['MAF'].round(2),
@@ -764,6 +767,32 @@ def main():
     bed_format['thickEnd'] = bed_format['thickEnd'].astype(int)
     bed_format['itemRgb'] = bed_format['itemRgb'].str.replace('"','')
     bed_format.sort_values(by=['chrom','chromStart'],ascending=True,inplace=True,ignore_index=True)
+    # remove spaces after commas in edit strategy column (allows terms to be filterable on browser track)
+    bed_format['Targetable by the following editing strategies'] = (bed_format['Targetable by the following editing strategies'].str.replace(', ', ',', regex=False))
+
+    # uncomment if we ever want to split the excision and non-excision snps into different browser tracks
+    # # split into excision and non-excision
+    # strategy_col = 'Targetable by the following editing strategies'
+
+    # # rows containing excision
+    # excision_bed = bed_format[
+    #     bed_format[strategy_col]
+    #     .str.contains(r'\bexcision\b', regex=True, na=False)
+    # ].copy()
+
+    # # rows containing ANY non-excision strategy
+    # non_excision_terms = [
+    #     'epigenetic silencing',
+    #     'splice site disruption',
+    #     'exon disruption'
+    # ]
+
+    # pattern = '|'.join(non_excision_terms)
+
+    # non_excision_bed = bed_format[
+    #     bed_format[strategy_col]
+    #     .str.contains(pattern, regex=True, na=False)
+    # ].copy()
 
     # save
     # make path if it doesn't already exists
@@ -775,7 +804,11 @@ def main():
     except OSError as e:
         print(f"Error creating directory: {e}")
 
+    # save excision if data frame is not empty
+
     bed_format.to_csv(os.path.join(new_directory_name, gene + '_snp_track_ng.bed'),header=False,index=False, sep='\t')
+    # save non-excision if data frame is not empty
+
     
     # create the .as file as well, for bigBed conversion:
     as_text = """table commonVar_geneEdits

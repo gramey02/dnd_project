@@ -70,15 +70,15 @@ else
 fi
 
 
-# # -------------------------------
-# # Run bigBed conversion
-# # -------------------------------
-# bigbed_script="$script_dir/browser_tracks/create_bigbeds.sh"
+# -------------------------------
+# Run bigBed conversion
+# -------------------------------
+bigbed_script="$script_dir/browser_tracks/create_bigbeds.sh"
 
-# qsub -cwd \
-#      -l mem_free=5G -l h_rt=02:00:00 \
-#      -o "$project_root/logs/out/bigbed_conversion.out" \
-#      -e "$project_root/logs/err/bigbed_conversion.err" \
-#      "$bigbed_script"
+qsub -cwd \
+     -l mem_free=5G -l h_rt=02:00:00 \
+     -o "$project_root/logs/out/bigbed_conversion.out" \
+     -e "$project_root/logs/err/bigbed_conversion.err" \
+     "$bigbed_script" "$param_file" "$unique_genes_file" "$output_dir"
 
-# echo "Finished bigBed conversion."
+echo "Finished bigBed conversion."
