@@ -5,7 +5,7 @@
 
 # activate excavate environment
 module load CBI miniforge3 bcftools
-conda activate excavate
+conda activate merged_env
 
 # load input vars
 output_dir=$1
