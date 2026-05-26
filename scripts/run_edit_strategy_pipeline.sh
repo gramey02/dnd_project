@@ -77,7 +77,7 @@ if contains "acceptor_base_edits" "${EDIT_STRATS[@]}"; then
     echo "Running acceptor base edits pipeline..."
     acceptor_pipeline="$script_dir/edit_strategy_pipelines/acceptor_baseEdit_pipeline.sh"
     acceptor_output_dir=$output_dir"/acceptor_base_edits"
-    qsub -cwd -l mem_free=1G -l h_rt=06:00:00 -o "$project_root/logs/out/acceptor_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/acceptor_pipeline_${RUN_NAME}.err" "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
+    qsub -cwd -l mem_free=1G -l h_rt=08:00:00 -o "$project_root/logs/out/acceptor_pipeline_${RUN_NAME}.out" -e "$project_root/logs/err/acceptor_pipeline_${RUN_NAME}.err" "$acceptor_pipeline" "$acceptor_output_dir" "$new_param_file"
     echo "Finished running acceptor pipeline."
 fi
 
