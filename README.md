@@ -58,44 +58,88 @@ Gene sets are saved under `data/dnd_hgnc` and their mapped ensembl data is saved
 
 ### 4 - Running the pipeline
 There are three main stages to the pipeline:
-#### A. Finding genetic variants targetable by different gene editing strategies.
+#### A. Identifying genetic variants targetable by different gene editing strategies.
 #### B. Finding gRNAs to target those variants.
 #### C. Creating viewable UCSC Genome Browser tracks to visualize targetable variants.
 
-A - To identify targetable genetic variants, the main entry point is the `run_edit_strategy_pipeline.sh` script. Run it using and SGE command like so:
+#### Note on running scripts on an HPC
+Code was originally intended to run on a high-performance compute (HPC) cluster, and the current pipeline expects an SGE-style HPC environment. Included python scripts can additionally be run in a standalone format (outside of an HPC).
+
+__A__ - To identify targetable genetic variants, the main entry point is the `run_edit_strategy_pipeline.sh` script. Run it using and SGE command like so:
 
 ```bash
 cd dnd_project # IMPORTANT: navigate to top level project directory so relative filepaths don't break.
 qsub -cwd -l mem_free=1G -l h_rt=00:10:00 ./scripts/run_edit_strategy_pipeline.sh
 ```
-The `data/params/params.txt` file informs the parameters for this analysis. Please see the README in the params directory for information on what those parameters are and how to change them. The default parameters ensure the analysis is run for four different gene editing strategies, The output of this 'finding variants' analysis step The edit strategy pipeline outputs common variants in the 1000 Genomes population that are targetable by different CRISPR gene editing strategies, as well as the guide RNA (gRNA) sequences that would target each common variant.
+The `data/params/params.txt` file informs the parameters for this part of the pipeline. Please see the README in the params directory for information on what those parameters are and how to change them. The default parameters ensure the analysis is run for four different gene editing strategies, The output of this variant identification analysis step includes the variants and the genes they pertain to. Output directories are structured like so:
+```bash
+RUN_1
+├── CRISPRoff
+│   ├── CpG_islands
+│   ├── GC_content
+│   ├── excavate
+│   ├── prePAM_hets
+│   ├── ubiq_region_CommonVars
+│   └── ubiq_regions
+├── PARAMS
+│   └── params.txt
+├── acceptor_base_edits
+│   ├── excavate
+│   ├── prePAM_hets
+│   ├── ubiq_region_CommonVars
+│   └── ubiq_regions
+├── donor_base_edits
+│   ├── excavate
+│   ├── prePAM_hets
+│   ├── ubiq_region_CommonVars
+│   └── ubiq_regions
+├── excision
+│   ├── CommonVars
+│   ├── excavate
+│   ├── final_sgRNA_snps
+│   ├── het_individuals
+│   └── prePAM_hets
+└── indels
+    ├── NMD
+    ├── excavate
+    ├── prePAM_hets
+    ├── ubiq_region_CommonVars
+    └── ubiq_regions
+```
+You'll notice the outputs (saved to a folder called `results`) of four different editing strategies are included: _indels, base edits (for splice acceptors and donors), CRISPRoff, and excision_. In the original paper, aliases for each of the editing strategies are _exon disruption, splice site disruption, epigentic silencing, and excision_, respectively. The parameters used for each set of results (a `RUN`) are saved to the output folder.
 
-Once the pipeline finishes running, users have the option to algorithmically rank the best gRNA sequences using a greedy algorithm approach.
+__B__ - Once the pipeline finishes running, users have the option to algorithmically rank the best gRNA sequences to target the genetic variants using a greedy algorithm approach.
 The greedy algorithm prioritization can be run like so:
 ```bash
 cd dnd_project # IMPORTANT: navigate to top level project directory so relative filepaths don't break.
 qsub -cwd -l mem_free=1G -l h_rt=06:00:00 ./scripts/run_guide_analysis.sh
 ```
-Prioritization of non-excision editing strategy guides will occur separately from excision editing strategy guide. Users have the option to specify in the params.txt file if they additionally want the gRNAs for each non-excision strategy to be considered separately or together during prioritization.
+Prioritization of non-excision editing strategy guides will occur separately from excision editing strategy guide. Users have the option to specify in the params.txt file if they additionally want the gRNAs for each non-excision strategy to be considered separately or together during prioritization. Outputs will appear in the `results/RUN_X/summary_files/cross_strat_gRNAs` folder.
 
 ## Browser tracks
-Code in `scripts/browser_tracks` is designed to generate viewable UCSC Genome Browser tracks for the targetable common variants of genes of interest. Run
+Code in `scripts/browser_tracks` is designed to generate viewable UCSC Genome Browser tracks for the targetable genetic variants identified in __A__. To generate them, run:
 ```bash
 cd dnd_project
-qsub -cwd -l mem_free=1G -l h_rt=00:10:00 ./scripts/create_browser_tracks.sh
+qsub -cwd -l mem_free=1G -l h_rt=03:00:00 ./scripts/create_browser_tracks.sh
 ```
-to generate bigBed files which can be uploaded to the UCSC Genome Browser TrackHub feature. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/All_D%26Dgenes_w_filtering.
-
-## Note on running scripts on an HPC
-Code was originally intended to run on a high-performance compute (HPC) cluster, and the current pipeline expects an SGE-style HPC environment. Included python scripts can additionally be run in a standalone format (outside of an HPC).
+This generates bigBed files and track metadata files which can be uploaded to the UCSC Genome Browser TrackHub feature. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/All_D%26Dgenes_w_filtering.
 
 ## Outputs
-Running the full pipeline produces information for each of the four gene editing strategies.
-Alias names for the editing strategies in the results directory are:
-- Exon disruption : "indels"
-- Epigenetic silencing : "CRISPRoff"
-- Splice site disruption : "donor_ or acceptor_base_edits"
-- Excision : "excision"
+To further break down the outputs for each editing strategy, let's take one example strategy output tree in the results folder:
+```bash
+RUN_1
+├── indels
+    ├── NMD
+    ├── excavate
+    ├── prePAM_hets
+    ├── ubiq_region_CommonVars
+    └── ubiq_regions
+```
+
+Outputs include:
+- ubiq_regions: dictionaries of regions that are common across all genes' transcripts (see filter_transcripts script and README).
+- ubiq_region_CommonVars: dictionaries of common genetic variants 
+
 
 In the results directory, example outputs include
 - Per-gene editing strategy results in `results/<run_id>/<strategy>/`
