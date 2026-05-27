@@ -52,6 +52,9 @@ PHASED_1000G_VCF_DIR="data/1KG" # str: directory containing ALL.chr*.shapeit2_in
 REF_GENOME_FASTA="data/reference_genomes/filtered_hg38.fa" # str: filepath for human reference GENOME
 CHROM_FASTA_FILEPATH="data/reference_genomes/" # str: filepath where fastas for specific chromosomes live
 EXCAVATE_SCRIPT="scripts/excavate/main.py" # str: filepath to the EXCAVATE entrypoint
+OFF_TARGETS="True" # str: tells excavate script whether to calculate off-target effects
+MAX_SNP_PAM_DIST=10 # int: maximum distance between a genetic variant and a PAM sequence
+
 
 # params for excision pipeline
 UPSTREAM_EXCISION_DIST=50000
