@@ -2,8 +2,6 @@ data/biallelic_vcfs/
 data/cpg_islands/dhs_CpGIslandOverlap_summary.csv
 data/cpg_islands/dhs_CpGIsland_Overlap_dict.pkl
 data/dnd_ensembl/dnd_ensembl_data_small.csv
-scripts/get_guides/__pycache__/
-scripts/get_hets/__pycache__/
 data/biallelic_afs/TGP_chr*_afs.txt
 data/GENCODE/gencode.v49.annotation.gtf
 data/1KG
@@ -11,3 +9,8 @@ data/GTEx/
 data/reference_genomes/
 results/
 logs/
+scripts/get_hets/__pycache__/
+scripts/get_guides/__pycache__/
+dnscripts.yml
+old_excavate_env.yml
+test/
