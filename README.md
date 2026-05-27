@@ -122,7 +122,7 @@ Code in `scripts/browser_tracks` is designed to generate viewable UCSC Genome Br
 cd dnd_project
 qsub -cwd -l mem_free=1G -l h_rt=03:00:00 ./scripts/create_browser_tracks.sh
 ```
-This generates bigBed files and track metadata files which can be uploaded to the UCSC Genome Browser TrackHub feature. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/All_D%26Dgenes_w_filtering.
+This generates bigBed files and track metadata files which can be uploaded to the UCSC Genome Browser TrackHub feature. Outputs are located in the `results/RUN_X/summary_files/browser_tracks` folder. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/All_D%26Dgenes_w_filtering.
 
 ## Outputs
 To further break down the outputs for each editing strategy, let's take one example strategy output tree in the results folder:
@@ -131,22 +131,30 @@ RUN_1
 ├── indels
     ├── NMD
     ├── excavate
+        ├── CommonVar_locs
+        ├── Guide_filtered_vcfs
+        ├── Guide_locs
+        ├── excavate_outputs
+        ├── guide_numbers
+        ├── het_individuals
+        ├── input_metadata
+        └── input_vcfs
     ├── prePAM_hets
     ├── ubiq_region_CommonVars
     └── ubiq_regions
 ```
 
-Outputs include:
-- ubiq_regions: dictionaries of regions that are common across all genes' transcripts (see filter_transcripts script and README).
-- ubiq_region_CommonVars: dictionaries of common genetic variants 
+__Crucial outputs include:__
+- `ubiq_regions`: dictionaries of regions (specific to editing strategy) that are common across all genes' transcripts (see filter_transcripts script and README).
+- `ubiq_region_CommonVars`: dictionaries of common genetic variants that fall within the shared regions
+- `excavate/input_vcfs`: per-gene `.vcf` files containing genetic variants targetable for that gene
+- `excavate/excavate_outputs`: guide RNA sequences per gene
+- `excavate/het_individuals`: dictionaries and summary files of number of individuals in a given population (default 1000 Genomes) heterozygous for the targetable variants (per gene). Variants here have been filtered to only those with PAM sites nearby
+- `prePAM_hets`: dictionaries and summary files of number of individuals in the population heterozygous for targetable variants _before_ filtering variants to only those with PAM sites nearby
 
-
-In the results directory, example outputs include
-- Per-gene editing strategy results in `results/<run_id>/<strategy>/`
-- Number of common variants per gene and strategy in `results/<run_id>/<strategy>/ubiq_region_CommonVars/CommonVars_All_summary.txt`
-- Common variant positions in `results/<run_id>/<strategy>/ubiq_region_CommonVars/CommonVars_All_dict.pkl`
-- Summary tables (CSV) in `results/<run_id>/summary/`
-- Browser track files (bigBed) in `results/browser_tracks/`
+Note that there are some edit strategy-specific outputs:
+- indels: the `NMD` folder contains information on variants that, when used to induce an indel, are more likely to induce nonsense mediated decay, and induce it across all of a gene's transcripts. Variants are filtered by thse NMD criteria (see parameters) before later pipeline stages.
+- excision: the CommonVars folder of the excision outputs contain sets of variants in `refined_common_vars` and `valid_snp_pairs`. These help determine which pairs of variants encompass at least one exon in a gene, and therefore would be likely to cause a valid exon excision.
 
 ## Summary Outputs
 You can generate summary information for your results by running the `scripts/make_summary_df/Creating_Master_DnD_DataFrame.ipynb` notebook, followed by `scripts/make_summary_df/Final_df_formatting.ipynb`. These create the necessary outputs to pass into `scripts/figure_plotting/Figure_Plotting_Ntbk.ipynb`, which generates figures showing D&D gene properties and targetability.
