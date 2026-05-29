@@ -1,5 +1,7 @@
 # Data for D&D Gene Editing Project
 
+Total data capacity needed for this project is roughly 30GB. Some specific file sizes are listed below, to give a sense of where the largest data capacity is needed.
+
 ## ClinGen
 * Clingen-Dosage-Sensitivity-2025-11-13.csv - _~170KB_
 * Clingen-Gene-Disease-Summary-2025-11-13.csv - _~980KB_
@@ -30,5 +32,3 @@
 
 ## Biallelic allele frequency files (biallelic_afs)
 * all per-chromosome .txt files after unzipping - _~3GB_
-
-## Biallelic vcf files
