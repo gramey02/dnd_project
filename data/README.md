@@ -13,12 +13,19 @@
 * gencode.v49.annotation.gtf.gz - _98MB_
 * (unzipped) gencode.v49.annotation.gtf - _3.1GB_
 
-# Optional Downloads for Additional Metadata
-
 ## Human Phenotype Ontology
 * genes_to_phenotype.txt - _20MB_
 * hp.obo - _11M_
 * missing_genes_terms.csv - _3.4KB_
 * phenotype.hpoa - _33MB_
+
+## Reference Genomes
+* reference genome fasta - _~3GB_
+
+## Chromosome sizes
+* hg38.chrom.sizes - _12KB_
+
+## 1000 Genomes (1KG) data
+
 
 _More information on 1000G and hg38 sizes to come_
