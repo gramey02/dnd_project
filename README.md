@@ -65,7 +65,8 @@ There are three main stages to the pipeline:
 ##### Note on running these analysese on an HPC
 Code was originally intended to run on a high-performance compute (HPC) cluster, and the current pipeline expects an SGE-style HPC environment. Included python scripts can additionally be run in a standalone format (outside of an HPC).
 
-__A__ - To identify targetable genetic variants, the main entry point is the `run_edit_strategy_pipeline.sh` script. Run it using and SGE command like so:
+#### A - Identifying genetic variants
+To identify targetable genetic variants, the main entry point is the `run_edit_strategy_pipeline.sh` script. Run it using and SGE command like so:
 
 ```bash
 cd dnd_project # IMPORTANT: navigate to top level project directory so relative filepaths don't break.
@@ -108,7 +109,8 @@ RUN_1
 ```
 You'll notice the outputs (saved to a folder called `results`) of four different editing strategies are included: _indels, base edits (for splice acceptors and donors), CRISPRoff, and excision_. In the original paper, aliases for each of the editing strategies are _exon disruption, splice site disruption, epigentic silencing, and excision_, respectively. The parameters used for each set of results (a `RUN`) are saved to the output folder.
 
-__B__ - Once the pipeline finishes running, users have the option to algorithmically rank the best gRNA sequences to target the genetic variants using a greedy algorithm approach.
+#### B - Greedy algorithm prioritization of gRNAs
+Once the pipeline finishes running, users have the option to algorithmically rank the best gRNA sequences to target the genetic variants using a greedy algorithm approach.
 The greedy algorithm prioritization can be run like so:
 ```bash
 cd dnd_project # IMPORTANT: navigate to top level project directory so relative filepaths don't break.
@@ -116,7 +118,7 @@ qsub -cwd -l mem_free=1G -l h_rt=06:00:00 ./scripts/run_guide_analysis.sh
 ```
 Prioritization of non-excision editing strategy guides will occur separately from excision editing strategy guide. Users have the option to specify in the params.txt file if they additionally want the gRNAs for each non-excision strategy to be considered separately or together during prioritization. Outputs will appear in the `results/RUN_X/summary_files/cross_strat_gRNAs` folder.
 
-## Browser tracks
+#### C - Genome browser tracks
 Code in `scripts/browser_tracks` is designed to generate viewable UCSC Genome Browser tracks for the targetable genetic variants identified in __A__. To generate them, run:
 ```bash
 cd dnd_project
