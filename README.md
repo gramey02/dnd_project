@@ -51,10 +51,10 @@ bash ./data/data_downloads.sh
 ```
 
 ### 3 - Creating gene sets
-We constructructed the original D&D gene set using ClinGen Gene-Disease and Dosage Sensitivity summary information (`data/clingen`). `scripts/create_gene_set` contains the notebook used to select dominant and haplosufficient genes. We mapped ClinGen gene names to their HGNC approved names using the [HGNC biomart tool](https://biomart.genenames.org/).
+We constructructed the original D&D gene set using ClinGen Gene-Disease and Dosage Sensitivity summary information (`data/clingen`). `scripts/create_gene_set/DnD_Gene_Selection.ipynb` is the notebook used to select dominant and haplosufficient genes. We mapped ClinGen gene names to their HGNC approved names using the [HGNC biomart tool](https://biomart.genenames.org/).
 
-In order to obtain information on transcripts, exon coordinates, and biotypes, we queried ENSEMBL. Gathering this information allows us to filter genes and transcripts by their biotype and determine where common genetic variants fall in the gene body. To query ENSEMBL for a new set of genes, one can run the script in `scripts/create_gene_set/get_ensembl_data.R` based on a list of gene names. Additionally, one can query directly from the [ENSEMBL Biomart website](https://useast.ensembl.org/info/data/biomart/index.html?).
-Gene sets are saved under `data/dnd_hgnc` and their mapped ensembl data is saved under `data/dnd_ensembl_data.csv`.
+In order to obtain information on transcripts, exon coordinates, and biotypes, we queried ENSEMBL. Gathering this information allows us to filter genes and transcripts by their biotype and determine where common genetic variants fall in the gene body. To query ENSEMBL for a new set of genes, one can run `scripts/create_gene_set/get_ensembl_data.R` based on a list of gene names. Additionally, one can query directly from the [ENSEMBL Biomart website](https://useast.ensembl.org/info/data/biomart/index.html?).
+Gene sets are saved under `data/dnd_hgnc` and their mapped ensembl data is saved under `data/dnd_ensembl/dnd_ensembl_data.csv`.
 
 ### 4 - Running the pipeline
 There are three main stages to the pipeline:
@@ -62,7 +62,7 @@ There are three main stages to the pipeline:
 #### B. Finding gRNAs to target those variants.
 #### C. Creating viewable UCSC Genome Browser tracks to visualize targetable variants.
 
-#### Note on running scripts on an HPC
+##### Note on running these analysese on an HPC
 Code was originally intended to run on a high-performance compute (HPC) cluster, and the current pipeline expects an SGE-style HPC environment. Included python scripts can additionally be run in a standalone format (outside of an HPC).
 
 __A__ - To identify targetable genetic variants, the main entry point is the `run_edit_strategy_pipeline.sh` script. Run it using and SGE command like so:
@@ -149,11 +149,11 @@ __Crucial outputs include:__
 - `ubiq_region_CommonVars`: dictionaries of common genetic variants that fall within the shared regions
 - `excavate/input_vcfs`: per-gene `.vcf` files containing genetic variants targetable for that gene
 - `excavate/excavate_outputs`: guide RNA sequences per gene
-- `excavate/het_individuals`: dictionaries and summary files of number of individuals in a given population (default 1000 Genomes) heterozygous for the targetable variants (per gene). Variants here have been filtered to only those with PAM sites nearby
-- `prePAM_hets`: dictionaries and summary files of number of individuals in the population heterozygous for targetable variants _before_ filtering variants to only those with PAM sites nearby
+- `excavate/het_individuals`: dictionaries and summary files of number of individuals in a given population (default 1000 Genomes) heterozygous at the variant sites. Variants here have been filtered to only those with PAM sites nearby
+- `prePAM_hets`: dictionaries and summary files of number of individuals in the population heterozygous at variant sites _before_ filtering variants to only those with PAM sites nearby
 
 Note that there are some edit strategy-specific outputs:
-- indels: the `NMD` folder contains information on variants that, when used to induce an indel, are more likely to induce nonsense mediated decay, and induce it across all of a gene's transcripts. Variants are filtered by thse NMD criteria (see parameters) before later pipeline stages.
+- indels: the `NMD` folder contains information on variants that, when used to induce an indel, are more likely to induce nonsense mediated decay, and induce it across all of a gene's transcripts. Variants are filtered by these NMD criteria (see parameters) before later pipeline stages.
 - excision: the CommonVars folder of the excision outputs contain sets of variants in `refined_common_vars` and `valid_snp_pairs`. These help determine which pairs of variants encompass at least one exon in a gene, and therefore would be likely to cause a valid exon excision.
 
 ## Summary Outputs
