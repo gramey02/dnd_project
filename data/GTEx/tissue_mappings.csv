@@ -1,0 +1,67 @@
+,gene_underscored_tissue,transcript_space_tissue
+2,Adipose_Subcutaneous,Adipose - Subcutaneous
+3,Adipose_Visceral_Omentum,Adipose - Visceral (Omentum)
+4,Adrenal_Gland,Adrenal Gland
+5,Artery_Aorta,Artery - Aorta
+6,Artery_Coronary,Artery - Coronary
+7,Artery_Tibial,Artery - Tibial
+8,Bladder,Bladder
+9,Brain_Amygdala,Brain - Amygdala
+10,Brain_Anterior_cingulate_cortex_BA24,Brain - Anterior cingulate cortex (BA24)
+11,Brain_Caudate_basal_ganglia,Brain - Caudate (basal ganglia)
+12,Brain_Cerebellar_Hemisphere,Brain - Cerebellar Hemisphere
+13,Brain_Cerebellum,Brain - Cerebellum
+14,Brain_Cortex,Brain - Cortex
+15,Brain_Frontal_Cortex_BA9,Brain - Frontal Cortex (BA9)
+16,Brain_Hippocampus,Brain - Hippocampus
+17,Brain_Hypothalamus,Brain - Hypothalamus
+18,Brain_Nucleus_accumbens_basal_ganglia,Brain - Nucleus accumbens (basal ganglia)
+19,Brain_Putamen_basal_ganglia,Brain - Putamen (basal ganglia)
+20,Brain_Spinal_cord_cervical_c-1,Brain - Spinal cord (cervical c-1)
+21,Brain_Substantia_nigra,Brain - Substantia nigra
+22,Breast_Mammary_Tissue,Breast - Mammary Tissue
+25,Cervix_Ectocervix,Cervix - Ectocervix
+26,Cervix_Endocervix,Cervix - Endocervix
+27,Colon_Sigmoid,Colon - Sigmoid
+28,Colon_Transverse,Colon - Transverse
+29,Colon_Transverse_Mixed_Cell,Colon - Transverse - Mixed Cell
+30,Colon_Transverse_Mucosa,Colon - Transverse - Mucosa
+31,Colon_Transverse_Muscularis,Colon - Transverse - Muscularis
+32,Esophagus_Gastroesophageal_Junction,Esophagus - Gastroesophageal Junction
+33,Esophagus_Mucosa,Esophagus - Mucosa
+34,Esophagus_Muscularis,Esophagus - Muscularis
+35,Fallopian_Tube,Fallopian Tube
+36,Heart_Atrial_Appendage,Heart - Atrial Appendage
+37,Heart_Left_Ventricle,Heart - Left Ventricle
+38,Kidney_Cortex,Kidney - Cortex
+39,Kidney_Medulla,Kidney - Medulla
+40,Liver,Liver
+41,Liver_Hepatocyte,Liver - Hepatocyte
+42,Liver_Mixed_Cell,Liver - Mixed Cell
+43,Liver_Portal_Tract,Liver - Portal Tract
+44,Lung,Lung
+45,Minor_Salivary_Gland,Minor Salivary Gland
+46,Muscle_Skeletal,Muscle - Skeletal
+47,Nerve_Tibial,Nerve - Tibial
+48,Ovary,Ovary
+49,Pancreas,Pancreas
+50,Pancreas_Acini,Pancreas - Acini
+51,Pancreas_Islets,Pancreas - Islets
+52,Pancreas_Mixed_Cell,Pancreas - Mixed Cell
+53,Pituitary,Pituitary
+54,Prostate,Prostate
+55,Skin_Not_Sun_Exposed_Suprapubic,Skin - Not Sun Exposed (Suprapubic)
+56,Skin_Sun_Exposed_Lower_leg,Skin - Sun Exposed (Lower leg)
+57,Small_Intestine_Terminal_Ileum,Small Intestine - Terminal Ileum
+58,Small_Intestine_Terminal_Ileum_Lymphode_Aggregate,Small Intestine - Terminal Ileum - Lymphoid Aggregate
+59,Small_Intestine_Terminal_Ileum_Mixed_Cell,Small Intestine - Terminal Ileum - Mixed Cell
+60,Spleen,Spleen
+61,Stomach,Stomach
+62,Stomach_Mixed_Cell,Stomach - Mixed Cell
+63,Stomach_Mucosa,Stomach - Mucosa
+64,Stomach_Muscularis,Stomach - Muscularis
+65,Testis,Testis
+66,Thyroid,Thyroid
+67,Uterus,Uterus
+68,Vagina,Vagina
+69,Whole_Blood,Whole Blood
