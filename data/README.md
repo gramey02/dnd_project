@@ -26,6 +26,9 @@
 * hg38.chrom.sizes - _12KB_
 
 ## 1000 Genomes (1KG) data
+* all per-chromose vcf.gz files together - _~14GB_
 
+## Biallelic allele frequency files (biallelic_afs)
+* all per-chromosome .txt files after unzipping - _~3GB_
 
-_More information on 1000G and hg38 sizes to come_
+## Biallelic vcf files
