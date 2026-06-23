@@ -9,13 +9,13 @@ USE_ONLY_CANONICAL="False" # boolean: within the canonical/tsl filtering pipelin
 USE_TSL_FLAG="False" # boolean: within the canonical/tsl filtering pipeline, tells us whether to filter on tsl
 TSL_NUM=0 # int: if >0, filter using this TSL integer confidence annotation
 KEEP_ALL_TRANSCRIPTS="True" # boolean: if no transcripts for a gene pass the above thresholds, keep all transcripts for that gene. If 0, keeps only the canonical transcript for the gene.
-TRANSCRIPT_TPM_FILE="data/GTEx/dhsGenes_GTEx_transcript_TPMs.txt" # tells us the per-transcript TPM - this is a filtered version so the file isn't so big
+TRANSCRIPT_TPM_FILE="data/GTEx/GTEx_Analysis_v10_RSEMv1.3.3_transcripts_tpm.noheader.txt" # "data/GTEx/dhsGenes_GTEx_transcript_TPMs.txt" # tells us the per-transcript TPM - this is a filtered version so the file isn't so big
 SAMPLE_ATTRIBUTES_FILE="data/GTEx/GTEx_Analysis_v10_Annotations_SampleAttributesDS.txt" # tells us the tissues that each sample ID belongs to
 GENE_MEDIAN_TPMS_FILE="data/GTEx/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
 COLNAMES_FILE="data/GTEx/transcripts_tpm_small.txt"
 TISSUE_MAP_FILE="data/GTEx/tissue_mappings.csv"
-ORIGINAL_EXON_FILE="results/RUN_04_15_26/filtered_transcripts/filtered_exon_info.csv"
-# ORIGINAL_EXON_FILE="data/dnd_ensembl/dnd_ensembl_data.csv"
+#ORIGINAL_EXON_FILE="results/RUN_04_15_26/filtered_transcripts/filtered_exon_info.csv"
+ORIGINAL_EXON_FILE="data/dnd_ensembl/protein_coding_single_transcript.csv"
 
 # params for identifying and filtering common variants
 AF_LIMIT=0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
@@ -23,6 +23,7 @@ USE_UBIQUITOUS_REGIONS=1 # boolean: whether or not the common variants should on
 USE_ALL_REGIONS=0 # boolean: whether or not the common variants should be considered if they're in non-ubiquitous regions (both this paramter and the previous param can be run simultaneously)
 REQUIRED_TRANSCRIPT_PROPORTION=0.5 # float: pertains to the previous parameter. Proportion of transcripts of a common variant should occur in to be considered.
 DOWNSAMPLE="True" # str: tells the excision script, where variants can reach the thousands, whether or not to downsample certain genes' variants
+DS_THRESHOLD=258
 
 # params for running NMD analysis
 RUN_NMD=1 # boolean: whether or not we run nonsense mediated decay analysis along with certain editing strategies
@@ -40,8 +41,9 @@ CPG_FILE="data/cpg_islands/CpG_islands_noHeader.txt"
 
 # params for base editing stategies
 EDITING_WINDOW_SIZE=4 # int: editing window size of base editors (e.g., ABEs, CBEs)
-DONOR_SNP_REGION="3-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice donor sites
-ACCEPTOR_SNP_REGION="4-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice acceptor sites
+DONOR_SNP_REGION="1-100" # OG: "3-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice donor sites
+ACCEPTOR_SNP_REGION="1-100" # OG: "4-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice acceptor sites
+BASE_EDITOR="both" # str: options are "ABE", "CBE", or "ABE/CBE" to denote which base editor to limit targeted variants to
 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
 AF_FILE_DIR="data/biallelic_afs" # str: directory containing TGP_chr*_afs.txt files
@@ -52,7 +54,7 @@ PHASED_1000G_VCF_DIR="data/1KG" # str: directory containing ALL.chr*.shapeit2_in
 REF_GENOME_FASTA="data/reference_genomes/filtered_hg38.fa" # str: filepath for human reference GENOME
 CHROM_FASTA_FILEPATH="data/reference_genomes/" # str: filepath where fastas for specific chromosomes live
 EXCAVATE_SCRIPT="scripts/excavate/main.py" # str: filepath to the EXCAVATE entrypoint
-OFF_TARGETS="True" # str: tells excavate script whether to calculate off-target effects
+OFF_TARGETS="False" # str: tells excavate script whether to calculate off-target effects
 MAX_SNP_PAM_DIST=10 # int: maximum distance between a genetic variant and a PAM sequence
 
 
@@ -69,10 +71,10 @@ SAMPLE_MAP="data/1KG_sample_names/igsr_samples.tsv"
 RSID_MAPS="data/rsID_maps"
 
 # params to tell the file which editing strategies to run
-EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision")
+EDIT_STRATS=("CRISPRoff") # ("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision") # ("acceptor_base_edits" "donor_base_edits")
 
 # params for storing all of the outputs
 PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
-RUN_NAME="RUN_04_23_26" # "RUN_$(date +%m_%d_%y)" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
+RUN_NAME="RUN_06_22_26" #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
