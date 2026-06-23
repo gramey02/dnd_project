@@ -57,9 +57,10 @@ ds_script="$project_root/scripts/format_variants/downsample_vars.py"
 input_vcf_fp="$output_dir/excavate/input_vcfs"
 valid_pairs_fp="$output_dir/CommonVars/valid_snp_pairs"
 common_var_locs_fp="$output_dir/excavate/CommonVar_locs"
+# check which genes fall above the threshold for too many snps
 if [[ "$DOWNSAMPLE" == "True" ]]; then
     module load CBI bcftools
-    python3 "$ds_script" --output_dir "$output_dir" --input_vcf_fp "$input_vcf_fp" --ds_threshold 258 --num_samples "$NUM_SAMPLES"
+    python3 "$ds_script" --output_dir "$output_dir" --input_vcf_fp "$input_vcf_fp" --ds_threshold $DS_THRESHOLD --num_samples "$NUM_SAMPLES"
     # also need to re-filter the vcf here
     output_vcf="$output_dir/excavate/input_vcfs/DCC_CommonVar_filtered.vcf.gz"
     biallelic_snps="$project_root/$BIALLELIC_SNPS_DIR/TGP_chr18_biallelicSNPs.vcf.gz"
