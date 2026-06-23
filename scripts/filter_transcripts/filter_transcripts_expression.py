@@ -39,8 +39,7 @@ def main():
     dtype_dict_small={'SMGTC':'str'}
     sa = pd.read_table(sample_attributes_filename,dtype=dtype_dict_small)
 
-    # transcript tpm file is large, so split into batches respecting gene boundaries
-    # list of lists with gene names to look into each time
+    # transcript tpm file is large, so a separate script splits larger gene lists into batches respecting gene boundaries
 
     # create a dictionary mapping sample id to tissue
     sample_tissue_dict = dict(zip(list(sa.SAMPID), list(sa.SMTSD)))
