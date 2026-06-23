@@ -252,32 +252,33 @@ def load_variant_data(vcf_file, var_type, locus, af_threshold):
 
 def run_off_targets(all_guides_unique, genome_fa, cas_obj, chseq):
 
-    def prompt_continue():
-        while True:
-            response = input("This step may take several hours. Do you want to continue? [y/n]: ").strip().lower()
-            if response in ('y', 'yes'):
-                return True
-            elif response in ('n', 'no'):
-                return False
-            else:
-                print("Please respond with 'y' or 'n'.")        
+    # removing prompting since we're running on a job on a cluster
+    # def prompt_continue():
+    #     while True:
+    #         response = input("This step may take several hours. Do you want to continue? [y/n]: ").strip().lower()
+    #         if response in ('y', 'yes'):
+    #             return True
+    #         elif response in ('n', 'no'):
+    #             return False
+    #         else:
+    #             print("Please respond with 'y' or 'n'.")        
                 
-    # Prompt user
-    if prompt_continue():
+    # # Prompt user
+    # if prompt_continue():
         
-        print('Off-targets analysis has begun, but may take hours to finish. To allow it to run without terminating, prevent your computer from sleeping. For Mac, go to Display > Advanced > Prevent automatic sleeping... Additionally, please make sure your computer does not shut down or run out of power')
+    #     print('Off-targets analysis has begun, but may take hours to finish. To allow it to run without terminating, prevent your computer from sleeping. For Mac, go to Display > Advanced > Prevent automatic sleeping... Additionally, please make sure your computer does not shut down or run out of power')
 
-        try:
-            all_guides_exact_counts = ap.count_exact_matches(all_guides_unique, genome_fasta_path=genome_fa, cas_parameters=cas_obj)
-            all_gudies_exact_1bp_counts = ap.one_mismatch(all_guides_exact_counts, chseq)
-            all_guides_final = all_gudies_exact_1bp_counts
-            print('Off-target analysis completed!')
-        except Exception as e:
-            raise RuntimeError(f"Failed to peform off-targets analysis: {e}")
+    try:
+        all_guides_exact_counts = ap.count_exact_matches(all_guides_unique, genome_fasta_path=genome_fa, cas_parameters=cas_obj)
+        all_gudies_exact_1bp_counts = ap.one_mismatch(all_guides_exact_counts, chseq)
+        all_guides_final = all_gudies_exact_1bp_counts
+        print('Off-target analysis completed!')
+    except Exception as e:
+        raise RuntimeError(f"Failed to peform off-targets analysis: {e}")
         
-    else:
-        all_guides_final = all_guides_unique
-        print('Okay! Exiting out of off-target analysis...')
+    # else:
+    #     all_guides_final = all_guides_unique
+    #     print('Okay! Exiting out of off-target analysis...')
         
     return all_guides_final
         

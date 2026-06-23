@@ -41,4 +41,12 @@ fi
 #echo $output_files
 
 # run excavate for each gene below
-python3 "$project_root/$EXCAVATE_SCRIPT" generate $common_var_vcf population $chrom_fasta $ref_genome_fasta $gene_coords --cas SpCas9 --summary -o $output_files
+if [[ "$OFF_TARGETS" == "True" ]]; then
+    python3 "$project_root/$EXCAVATE_SCRIPT" generate \
+        "$common_var_vcf" population "$chrom_fasta" "$ref_genome_fasta" "$gene_coords" \
+        --cas SpCas9 --summary -o "$output_files" --off-targets
+else
+    python3 "$project_root/$EXCAVATE_SCRIPT" generate \
+        "$common_var_vcf" population "$chrom_fasta" "$ref_genome_fasta" "$gene_coords" \
+        --cas SpCas9 --summary -o "$output_files"
+fi
