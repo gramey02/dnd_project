@@ -209,7 +209,7 @@ def main():
         final_gene_objects[gene] = df
 
     # =========================================================
-    # STEP 4: RUN ORIGINAL CODE to get shared donor snp ranges
+    # STEP 4: RUN ORIGINAL CODE to get shared acceptor snp ranges
     # =========================================================
     # parse out regions that you'll search for snps in
     acceptor_snp_region_lb = int(acceptor_snp_region.split('-')[0]) # lb for lower bound

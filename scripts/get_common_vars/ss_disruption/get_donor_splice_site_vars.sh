@@ -19,4 +19,5 @@ python3 "$script" --exon_file "$project_root/$exon_file" \
   --af_file_dir "$project_root/$AF_FILE_DIR" \
   --editing_window_size "$EDITING_WINDOW_SIZE" \
   --donor_snp_region "$DONOR_SNP_REGION" \
-  --output_dir "$output_dir"
+  --output_dir "$output_dir" \
+  --base_editor "$BASE_EDITOR"
