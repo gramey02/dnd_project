@@ -41,8 +41,8 @@ CPG_FILE="data/cpg_islands/CpG_islands_noHeader.txt"
 
 # params for base editing stategies
 EDITING_WINDOW_SIZE=4 # int: editing window size of base editors (e.g., ABEs, CBEs)
-DONOR_SNP_REGION="1-100" # OG: "3-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice donor sites
-ACCEPTOR_SNP_REGION="1-100" # OG: "4-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice acceptor sites
+DONOR_SNP_REGION="3-21" # OG: "3-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice donor sites
+ACCEPTOR_SNP_REGION="4-21" # OG: "4-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice acceptor sites
 BASE_EDITOR="both" # str: options are "ABE", "CBE", or "ABE/CBE" to denote which base editor to limit targeted variants to
 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
@@ -71,10 +71,10 @@ SAMPLE_MAP="data/1KG_sample_names/igsr_samples.tsv"
 RSID_MAPS="data/rsID_maps"
 
 # params to tell the file which editing strategies to run
-EDIT_STRATS=("CRISPRoff") # ("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision") # ("acceptor_base_edits" "donor_base_edits")
+EDIT_STRATS=("donor_base_edits") # ("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision") # ("acceptor_base_edits" "donor_base_edits")
 
 # params for storing all of the outputs
 PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
-RUN_NAME="RUN_06_22_26" #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
+RUN_NAME="RUN_$(date +%m_%d_%y)" # "RUN_06_22_26" before this for indels #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
