@@ -124,7 +124,7 @@ Code in `scripts/browser_tracks` is designed to generate viewable UCSC Genome Br
 cd dnd_project
 qsub -cwd -l mem_free=1G -l h_rt=03:00:00 ./scripts/create_browser_tracks.sh
 ```
-This generates bigBed files and track metadata files which can be uploaded to the UCSC Genome Browser TrackHub feature. Outputs are located in the `results/RUN_X/summary_files/browser_tracks` folder. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/All_D%26Dgenes_w_filtering.
+This generates bigBed files and track metadata files which can be uploaded to the UCSC Genome Browser TrackHub feature. Outputs are located in the `results/RUN_X/summary_files/browser_tracks` folder. Browser tracks for the current gene set can be found at the Github Repo [DnD_TrackHubs_Public](https://github.com/gramey02/DnD_TrackHubs_Public) or at the session link https://genome.ucsc.edu/s/gramey02/All_DnDgenes_session.
 
 ## Outputs
 To further break down the outputs for each editing strategy, let's take one example strategy output tree in the results folder:
