@@ -206,6 +206,7 @@ def main():
             vcf_filt=vcf_filt.assign(remove_list=remove_list)
             vcf_filt=vcf_filt[vcf_filt.remove_list==0]
             vcf_filt.drop(labels=['remove_list'],inplace=True,axis=1)
+            vcf_filt.drop_duplicates(subset='pos', inplace=True, keep=False)
             assert_uniq_val_per_row(vcf_filt, "pos") # this function checks that all numbers of the 'pos' column are unique
 
             # load the gene's valid snp pairs

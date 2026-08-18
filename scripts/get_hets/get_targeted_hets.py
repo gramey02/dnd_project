@@ -12,6 +12,7 @@ def parse_args():
     parser.add_argument('--gene_info', type = str, required = True, help = 'Information on genes that have passed filtering criteria so far for the editing strat.')
     parser.add_argument('--excavate_output_dir', type=str, required=True, help='Directory where excavate outputs are located.')
     parser.add_argument('--filtered_vcf_dir', type=str, required=True, help='Directory where guide-filtered vcfs are located.')
+    parser.add_argument('--num_samples', type=int, required=True, help = 'Number of samples in vcf files')
     args = parser.parse_args()
     return args
 
@@ -49,6 +50,7 @@ def main():
     output_dir=args.output_dir
     excavate_output_dir=args.excavate_output_dir
     filtered_vcf_dir=args.filtered_vcf_dir
+    num_samples=args.num_samples
 
     # create a dict of genes and their viable genetic variants that can be targeted, based on results from excavate
     gene_targetableSNPs = {}
@@ -66,7 +68,7 @@ def main():
         pickle.dump(gene_targetableSNPs, fp)
 
     # vcf formatting info
-    sample_list = list(range(1,2549)) # number of people in 1KG
+    sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
     num_unique_hets_hit=[]
@@ -89,6 +91,7 @@ def main():
         vcf['remove'] = remove
         vcf=vcf[vcf['remove']!=1]
         vcf.drop(labels=['remove'],axis=1,inplace=True)
+        vcf.drop_duplicates(subset='pos', inplace=True, keep=False)
         vcf_clean_tdf, vcf_key_df = transpose_and_clean(vcf)
 
         # this outputs a dictionary where the keys are positions, and the values are lists of samples that are heterozygous for those positions
