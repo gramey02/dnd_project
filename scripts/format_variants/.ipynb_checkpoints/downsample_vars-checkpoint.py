@@ -42,10 +42,18 @@ def make_list_of_hets(r_clean_tdf):
 def assert_unique_and_biallelic_vcf_values(vcf):
     # 1️⃣ remove fully duplicated rows
     vcf = vcf.drop_duplicates()
+        
     
     # 2️⃣ keep only rows where ref and alt are single letters
     vcf = vcf[vcf['ref'].str.len() == 1]
     vcf = vcf[vcf['alt'].str.len() == 1]
+
+    # remove multiallelic sites
+    if len(vcf['pos'])>len(vcf['pos'].unique()):
+        vcs = pd.DataFrame(r_clean_tdf.columns.value_counts())
+        doubled_pos=list((vcs[vcs['count']>1]).index)
+        # remove the multiallelic sites
+        vcf=vcf[~vcf['pos'].isin(doubled_pos)]
     
     # optional: reset index
     vcf = vcf.reset_index(drop=True)
