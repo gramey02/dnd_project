@@ -27,13 +27,13 @@ pg_dir="$bt_dir/per_gene_files"
 
 # Public URLs reused across the UCSC hub text files
 github_base_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/trackhub_current" #"https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/bed_files"
-cN8_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/WTD_het.bb" # "https://www.dropbox.com/scl/fi/v0zhxb1nv0s3lbnvtsfdi/cN8-hNIL.vcf.gz?rlkey=5jvvckcl5irvgquergenz622v&st=f8k98eqe&dl=0"
+cN8_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/archived_trackhubs/bed_files/all_genes_w_filtering/WTD_het.bb" # "https://www.dropbox.com/scl/fi/v0zhxb1nv0s3lbnvtsfdi/cN8-hNIL.vcf.gz?rlkey=5jvvckcl5irvgquergenz622v&st=f8k98eqe&dl=0"
 # cN8_tbi="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/WTD_het.bb" # "https://www.dropbox.com/scl/fi/3vvzenwaeptn4bk5uq3p8/cN8-hNIL.vcf.gz.tbi?rlkey=cdjowthr6v2ipn6lb11ffvdu2&st=uimb4dce&dl=0"
-KOLF2_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/KOLF2_het.bb" # "https://www.dropbox.com/scl/fi/khggb81kz3boboa08i5ao/KOLF2-ARID2-A02.vcf.gz?rlkey=plw72thalgc18clhllj2qt9yu&st=razkh9zp&dl=0"
+KOLF2_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/archived_trackhubs/bed_files/all_genes_w_filtering/KOLF2_het.bb" # "https://www.dropbox.com/scl/fi/khggb81kz3boboa08i5ao/KOLF2-ARID2-A02.vcf.gz?rlkey=plw72thalgc18clhllj2qt9yu&st=razkh9zp&dl=0"
 # KOLF2_tbi="https://www.dropbox.com/scl/fi/wjnmh6ooqzsn41cej4vkf/KOLF2-ARID2-A02.vcf.gz.tbi?rlkey=8g5edij1dsgpdgb0pl6cos93k&st=9iglrkqt&dl=0"
-WTB_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/WTB_het.bb" # "https://www.dropbox.com/scl/fi/2convcch36hvpc6yrkck7/WTB_variants_PASS.vcf.gz?rlkey=xpzy5409qwppftdssnt5puytp&st=z9nxdvt2&dl=0"
+WTB_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/archived_trackhubs/bed_files/all_genes_w_filtering/WTB_het.bb" # "https://www.dropbox.com/scl/fi/2convcch36hvpc6yrkck7/WTB_variants_PASS.vcf.gz?rlkey=xpzy5409qwppftdssnt5puytp&st=z9nxdvt2&dl=0"
 # WTB_tbi="https://www.dropbox.com/scl/fi/msnbr6rbgx6nii4tvqpcs/WTB_variants_PASS.vcf.gz.tbi?rlkey=qa64d30avsprcnkn3ija51kck&st=6x16hnr9&dl=0"
-WTC_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/WTC_het.bb" # "https://www.dropbox.com/scl/fi/xtbksv9x1ufdooditcyel/WTC_variants_PASS.vcf.gz?rlkey=8hvqxbo4mycyh146n2betc54k&st=johlzb9u&dl=0"
+WTC_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/archived_trackhubs/bed_files/all_genes_w_filtering/WTC_het.bb" # "https://www.dropbox.com/scl/fi/xtbksv9x1ufdooditcyel/WTC_variants_PASS.vcf.gz?rlkey=8hvqxbo4mycyh146n2betc54k&st=johlzb9u&dl=0"
 # WTC_tbi="https://www.dropbox.com/scl/fi/dvn57oncyxyuelyw79nu2/WTC_variants_PASS.vcf.gz.tbi?rlkey=8ntna5anht7uju2505yoqnhqx&st=eh54x6ar&dl=0"
 
 # write_gene_hub_file() {
@@ -258,7 +258,7 @@ done < "$gene_file"
 # Make the final combined bigBed
 as_file="$bt_dir/metadata/bed_col_descriptors.as"
 sorted_combined="$bt_dir/all_genes_together/all_genes_ng.sorted.bed"
-final_bigbed="$bt_dir/all_genes_together/DnD_gene_ng.bb"
+final_bigbed="$bt_dir/all_genes_together/all_DnD_genes.bb"
 
 sort -k1,1 -k2,2n "$combined_bed" > "$sorted_combined"
 bedToBigBed -type=bed9+16 -tab -as=$as_file $sorted_combined $chrom_sizes $final_bigbed
