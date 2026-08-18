@@ -518,7 +518,13 @@ def main():
         vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf.gz')
         if os.path.exists(vcf_fp) is False:
             continue
-        cur_vcf = pd.read_table(vcf_fp, skiprows=23, compression='gzip')
+        with gzip.open(vcf_fp, 'rt') as f:
+            n_header_lines = 0
+            for line in f:
+                if not line.startswith('##'):
+                    break
+                n_header_lines += 1
+        cur_vcf = pd.read_table(vcf_fp, skiprows=n_header_lines, compression='gzip')
         cur_vcf = assert_unique_and_biallelic_vcf_values(cur_vcf)
         full_vcf.append(cur_vcf)
     if len(full_vcf) > 0:
