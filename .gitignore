@@ -8,10 +8,8 @@ data/1KG
 data/reference_genomes/*.fa
 results/
 logs/
-scripts/get_hets/__pycache__/
-scripts/get_guides/__pycache__/
 dnscripts.yml
 old_excavate_env.yml
-test/
 data/reference_genomes/*.fai
 data/reference_genomes/*.fa.gz
+test/
