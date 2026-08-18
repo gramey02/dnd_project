@@ -31,5 +31,5 @@ rsID_fp="$project_root/$RSID_MAPS/gnomAD_v4.1.0_PASS_SNVs_chr${cur_chrom}_pos_rs
 # run script
 python3 $script --results_dir $results_dir --run_name $run_name --gene $gene \
         --ref_genome_fasta $REF_GENOME_FASTA --bt_dir $bt_dir --exon_file $exon_file \
-        --sample_map $SAMPLE_MAP --rsID_fp $rsID_fp
+        --sample_map $SAMPLE_MAP --rsID_fp $rsID_fp --num_samples $NUM_SAMPLES
 

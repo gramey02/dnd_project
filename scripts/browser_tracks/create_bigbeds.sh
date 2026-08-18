@@ -26,7 +26,7 @@ pg_dir="$bt_dir/per_gene_files"
 # gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $gene_file)
 
 # Public URLs reused across the UCSC hub text files
-github_base_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/bed_files"
+github_base_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/trackhub_current" #"https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/bed_files"
 cN8_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/WTD_het.bb" # "https://www.dropbox.com/scl/fi/v0zhxb1nv0s3lbnvtsfdi/cN8-hNIL.vcf.gz?rlkey=5jvvckcl5irvgquergenz622v&st=f8k98eqe&dl=0"
 # cN8_tbi="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/WTD_het.bb" # "https://www.dropbox.com/scl/fi/3vvzenwaeptn4bk5uq3p8/cN8-hNIL.vcf.gz.tbi?rlkey=cdjowthr6v2ipn6lb11ffvdu2&st=uimb4dce&dl=0"
 KOLF2_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/all_genes_w_filtering/KOLF2_het.bb" # "https://www.dropbox.com/scl/fi/khggb81kz3boboa08i5ao/KOLF2-ARID2-A02.vcf.gz?rlkey=plw72thalgc18clhllj2qt9yu&st=razkh9zp&dl=0"
@@ -155,7 +155,7 @@ WTC_url="https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/he
 write_metadata_hub_file_with_cell_lines() {
     local out_path="$1"
     # The metadata hub uses the combined bigBed and indexed VCF tracks.
-    local bigbed_url="${github_base_url}/all_genes_w_filtering/DnD_gene_ng.bb"
+    local bigbed_url="${github_base_url}/all_DnD_genes.bb"
 
     # Write the combined hub config plus cell-line VCF/index URLs.
     cat > "$out_path" <<EOF
@@ -175,6 +175,9 @@ type bigBed
 filterValues.editStrats exon disruption,epigenetic silencing,splice site disruption,excision
 filterType.editStrats multipleListOr
 bigDataUrl ${bigbed_url}
+html https://raw.githubusercontent.com/gramey02/DnD_TrackHubs_Public/refs/heads/main/track_descriptions/dnd_track_description.html
+url https://gramey02.github.io/DnD_TrackHubs_Public/track_descriptions/dnd_track_description.html
+urlLabel View color legend and track documentation
 
 track WTB_bb
 shortLabel WTB het vars

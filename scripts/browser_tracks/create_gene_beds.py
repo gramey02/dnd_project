@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('--exon_file', type=str, required=True, help='Exon information across genes.')
     parser.add_argument('--sample_map', type=str, required=True, help='Filepath mapping sampled IDs to more specific sample names.')
     parser.add_argument('--rsID_fp', type=str, required=True, help='map between position and rsID')
+    parser.add_argument('--num_samples', type=int, required=True, help='Number of samples (individuals) in the population VCFs.')
     args = parser.parse_args()
     return args
 
@@ -40,6 +41,7 @@ def main():
     exon_file=args.exon_file
     sample_map_fp=args.sample_map
     rsID_fp=args.rsID_fp
+    num_samples=args.num_samples
     strats=['indels','CRISPRoff','donor_base_edits', 'acceptor_base_edits','excision']
 
 
@@ -136,7 +138,6 @@ def main():
     # ensure that these are all biallelic--if not, remove them from consideration
 
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -179,7 +180,6 @@ def main():
     ## Load post-PAM SNPS
     post_pam_frames = []
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -227,7 +227,6 @@ def main():
 
     # get genotype frequencies
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -487,16 +486,15 @@ def main():
     # format genotype frequencies
     all_snps_reorder['formatted_genos'] = all_snps_reorder.apply(
         lambda r:
-            f"Heterozygous ({r.ref}{r.alt}) {int(r.heterozygote_freq * 100)}% ({r.het_num}/2548), "
-            + f"Homozygous ref ({r.ref}{r.ref}) {int(r.homo_ref_freq * 100)}% ({r.homo_ref_num}/2548), "
-            + f"Homozygous alt ({r.alt}{r.alt}) {int(r.homo_alt_freq * 100)}% ({r.homo_alt_num}/2548)",
+            f"Heterozygous ({r.ref}{r.alt}) {int(r.heterozygote_freq * 100)}% ({r.het_num}/{num_samples}), "
+            + f"Homozygous ref ({r.ref}{r.ref}) {int(r.homo_ref_freq * 100)}% ({r.homo_ref_num}/{num_samples}), "
+            + f"Homozygous alt ({r.alt}{r.alt}) {int(r.homo_alt_freq * 100)}% ({r.homo_alt_num}/{num_samples})",
         axis=1
     )
 
     
     ## Include population-specific frequencies
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
