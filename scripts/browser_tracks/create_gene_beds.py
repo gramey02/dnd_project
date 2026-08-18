@@ -606,10 +606,10 @@ def main():
         # combine the data into general frequencies
         for snp,het_list in het_dict.items():
             # skips EUR,AFR merged pop
-            if pop+'_AF' not in info_df.columns:
+            if f'AF_{pop}_unrel' not in info_df.columns:
                 continue
             snp_list.append(snp)
-            af_list.append(info_df[info_df['pos']==snp][pop+'_AF'].values[0])
+            af_list.append(info_df[info_df['pos']==snp][f'AF_{pop}_unrel'].values[0])
             het_num.append(len(het_list))
             het_freq.append(len(het_list)/pop_size if pop_size > 0 else np.nan)
             homo_ref_num.append(len(ref_hom_dict[snp]))
@@ -654,7 +654,7 @@ def main():
         ha_freq  = asr[f'homo_alt_freq{pop}']
         ha_num   = asr[f'homo_alt_num{pop}']
         pop_size = asr[f'pop_size{pop}']
-        afs = asr[f'{pop}_AF']
+        afs = asr[f'AF_{pop}_unrel']
 
         asr[f'formatted_superpops_{pop}'] = (
             "Allele frequency = " + afs.astype(str) + ", " +
@@ -832,12 +832,12 @@ def main():
         string  RefAlt;        "Ref/Alt allele"
         string  af;            "Allele frequency (AF)"
         string  maf;           "Minor allele frequency (MAF)"
-        lstring genos;         "Global genotype frequencies in 1000 Genomes"
-        lstring afr;           "AFR genotype frequencies (1000 Genomes)"
-        lstring eur;           "EUR genotype frequencies (1000 Genomes)"
-        lstring amr;           "AMR genotype frequencies (1000 Genomes)"
-        lstring eas;           "EAS genotype frequencies (1000 Genomes)"
-        lstring sas;           "SAS genotype frequencies (1000 Genomes)"
+        lstring genos;         "Global genotype frequencies in 1000 Genomes (unrelated individuals)"
+        lstring afr;           "AFR genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring eur;           "EUR genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring amr;           "AMR genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring eas;           "EAS genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring sas;           "SAS genotype frequencies (1000 Genomes, unrelated individuals)"
         string  editStrats;    "CRISPR editing strategy"
         string  exParts;       "Five closest excision partners, if any"
         string  PAMtargetable; "CRISPR/SpCas9 Targetable?"
