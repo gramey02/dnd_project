@@ -759,7 +759,8 @@ def main():
         '5 closest excision partners, if any':[','.join(str(i) for i in closest_partners[x]) if x in closest_partners else 'NA' for x in all_snps_reorder['pos']],
         'CRISPR/SpCas9 Targetable?': ['Yes' if x==True else 'No' for x in all_snps_reorder['CRISPR_Cas9_targetable']],
         'Flanking sequences' : all_snps_reorder['flanking_seqs'],
-        'Other Cas targetability tools':'CRISPOR - https://crispor.gi.ucsc.edu/, CRISPick - https://portals.broadinstitute.org/gppx/crispick/public'
+        'Other Cas targetability tools':'CRISPOR - https://crispor.gi.ucsc.edu/, CRISPick - https://portals.broadinstitute.org/gppx/crispick/public',
+        'SNP color coding scheme':'Please see the browser track main page or go to https://gramey02.github.io/DnD_TrackHubs_Public/track_descriptions/dnd_track_description.html'
     })
     bed_format['chromStart'] = bed_format['chromStart'].astype(int)
     bed_format['chromEnd'] = bed_format['chromEnd'].astype(int)
@@ -833,11 +834,12 @@ def main():
         lstring amr;           "AMR genotype frequencies (1000 Genomes)"
         lstring eas;           "EAS genotype frequencies (1000 Genomes)"
         lstring sas;           "SAS genotype frequencies (1000 Genomes)"
-        string  editStrats;    "Targetable by the following CRISPR editing strategies"
+        string  editStrats;    "CRISPR editing strategy"
         string  exParts;       "Five closest excision partners, if any"
         string  PAMtargetable; "CRISPR/SpCas9 Targetable?"
         lstring flanking;      "+/- 25 bp flanking variant"
         string  castool;       "Cas/gRNA generation tools"
+        lstring colorScheme;   "Link to browser track color coding scheme"
     )
     """
 
