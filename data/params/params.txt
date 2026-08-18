@@ -14,16 +14,18 @@ SAMPLE_ATTRIBUTES_FILE="data/GTEx/GTEx_Analysis_v10_Annotations_SampleAttributes
 GENE_MEDIAN_TPMS_FILE="data/GTEx/GTEx_Analysis_v10_RNASeQCv2.4.2_gene_median_tpm.gct" # file that tells us the median TPM in a tissue per gene
 COLNAMES_FILE="data/GTEx/transcripts_tpm_small.txt"
 TISSUE_MAP_FILE="data/GTEx/tissue_mappings.csv"
-#ORIGINAL_EXON_FILE="results/RUN_04_15_26/filtered_transcripts/filtered_exon_info.csv"
-ORIGINAL_EXON_FILE="data/dnd_ensembl/protein_coding_single_transcript.csv"
+ORIGINAL_EXON_FILE="results/RUN_04_15_26/filtered_transcripts/filtered_exon_info.csv"
+#ORIGINAL_EXON_FILE="data/dnd_ensembl/protein_coding_single_transcript.csv"
 
 # params for identifying and filtering common variants
 AF_LIMIT=0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
 USE_UBIQUITOUS_REGIONS=1 # boolean: whether or not the common variants should only be considered if they are present in all gene transcripts (aka, in all transcripts that pass potential transcript filtering)
 USE_ALL_REGIONS=0 # boolean: whether or not the common variants should be considered if they're in non-ubiquitous regions (both this paramter and the previous param can be run simultaneously)
 REQUIRED_TRANSCRIPT_PROPORTION=0.5 # float: pertains to the previous parameter. Proportion of transcripts of a common variant should occur in to be considered.
-DOWNSAMPLE="True" # str: tells the excision script, where variants can reach the thousands, whether or not to downsample certain genes' variants
-DS_THRESHOLD=258
+DOWNSAMPLE="True" # str: tells the excision script, where variants can reach the thousands, whether or not to split genes with too many variants into batches for EXCAVATE (no variants are dropped; batches are merged back into one gene folder after EXCAVATE runs)
+DS_THRESHOLD=258 # int: max number of variants to run through EXCAVATE at once per gene/batch, above which a gene's variants get split into multiple batches
+LARGE_GENE_PAIR_THRESHOLD=800000 # int: max number of valid SNP pairs a gene can have before het_combos.sh routes it to a separate array job with a much larger mem_free/h_rt (the greedy pair-selection algorithm scales badly with pair count). Set with margin below TRPM3 (1,169,768 pairs, SIGKILLed on the normal budget in RUN_MULTIALLELIC despite completing once before) and above the next-largest gene, CACNA1C (585,257 pairs).
+MA_THRESHOLD=0.01 # float: threshold at which we'll keep the snp locus, even if it has a rare third allele at a frequence of MA_THRESHOLD (e.g., 3rd allele is at 0.01)
 
 # params for running NMD analysis
 RUN_NMD=1 # boolean: whether or not we run nonsense mediated decay analysis along with certain editing strategies
@@ -46,9 +48,9 @@ ACCEPTOR_SNP_REGION="4-21" # OG: "4-21" # str: will be parsed in subsequent file
 BASE_EDITOR="both" # str: options are "ABE", "CBE", or "ABE/CBE" to denote which base editor to limit targeted variants to
 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
-AF_FILE_DIR="data/biallelic_afs" # str: directory containing TGP_chr*_afs.txt files
-BIALLELIC_SNPS_DIR="data/biallelic_vcfs" # str: directory containing TGP_chr*_biallelicSNPs.vcf.gz files
-PHASED_1000G_VCF_DIR="data/1KG" # str: directory containing ALL.chr*.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz files
+AF_FILE_DIR="data/multiallelic_afs_high_coverage" # "data/biallelic_afs_high_coverage" # str: directory containing TGP_chr*_afs.txt files
+BIALLELIC_SNPS_DIR="data/multi_allelic_filtered_vcfs_high_coverage" # str: directory containing TGP_chr*_biallelicSNPs.vcf.gz files
+#PHASED_1000G_VCF_DIR="data/1KG" # str: directory containing ALL.chr*.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz files
 
 # params for running excavate
 REF_GENOME_FASTA="data/reference_genomes/filtered_hg38.fa" # str: filepath for human reference GENOME
@@ -63,7 +65,7 @@ UPSTREAM_EXCISION_DIST=50000
 DOWNSTREAM_EXCISION_DIST=50000
 GENE_BODY_FILE="data/GENCODE/gencode.v49.annotation.gtf"
 EXCISE_ENTIRE_GENE=0 # boolean: if true, pipeline considers only genetic variants that flank the entire gene for excision, rather than indivdual exons
-NUM_SAMPLES=2548 # int: number of samples in a population. Commonly the 1000Genomes population, that we're determining number of heterozygotes in
+NUM_SAMPLES=2504 # 2548 # int: number of samples in a population. Commonly the 1000Genomes population, that we're determining number of heterozygotes in
 FILTER_OUT_NEARBY_GENES=1 # boolean: if true, pipeline restricts excision window by removing nearby protein coding gene coordinates from excision window
 
 # params for browser track pipeline
@@ -71,10 +73,10 @@ SAMPLE_MAP="data/1KG_sample_names/igsr_samples.tsv"
 RSID_MAPS="data/rsID_maps"
 
 # params to tell the file which editing strategies to run
-EDIT_STRATS=("donor_base_edits") # ("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision") # ("acceptor_base_edits" "donor_base_edits")
+EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "excision") # ("acceptor_base_edits" "donor_base_edits")
 
 # params for storing all of the outputs
 PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
-RUN_NAME="RUN_$(date +%m_%d_%y)" # "RUN_06_22_26" before this for indels #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
+RUN_NAME="RUN_MULTIALLELIC" #"RUN_$(date +%m_%d_%y)" # "RUN_06_22_26" before this for indels #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
