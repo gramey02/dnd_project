@@ -22,5 +22,5 @@ OUTPUT_FILE="$output_dir/summary_files/cross_strat_gRNAs/excision_guides/results
 if [ ! -f "$OUTPUT_FILE" ]; then
     # downsample to the top 258 snp locations with the higest heterozygote frequency
     gRNA_script="$script_dir/get_guides/excision_guides.py"
-    python3 "$gRNA_script" --output_dir "$output_dir" --gene "$gene" --num_samples "$NUM_SAMPLES" --valid_pairs_fp "$valid_pairs_fp" --vcf_dir "$vcf_dir" --max_iter 50
+    python3 "$gRNA_script" --output_dir "$output_dir" --gene "$gene" --num_samples "$NUM_SAMPLES" --valid_pairs_fp "$valid_pairs_fp" --vcf_dir "$vcf_dir" --max_iter 50 --max_pairs_thresh "$LARGE_GENE_PAIR_THRESHOLD" --ds_threshold "$DS_THRESHOLD"
 fi

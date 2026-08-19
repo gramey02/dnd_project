@@ -18,31 +18,32 @@ def create_haplotype_df(vcf, string_list):
     vcf=vcf.copy()
     if 'edit_strategy' in vcf.columns:
         vcf.drop(labels=['edit_strategy'], axis=1, inplace=True)
-    
-    # more efficient haplotype assignment
+
     people = ["sample" + s for s in string_list]
-    
-    sample_haps_suffix = (
-        [f"{p}.1" for p in people] +
-        [f"{p}.2" for p in people]
-    )
-    sample_haps_suffix.sort()
-    
-    geno = vcf[people]  # shape: (n_sites, n_people)
-    
-    hap1 = geno.apply(lambda col: col.str.split("|", expand=True)[0])
-    hap2 = geno.apply(lambda col: col.str.split("|", expand=True)[1])
-    
-    hap1 = hap1.astype(float)
-    hap2 = hap2.astype(float)
-    
+
+    # force string dtype up front, so a column that's all bare digits (hemizygous
+    # calls, e.g. chrX/Y in males) doesn't get inferred as int64 and break .str
+    geno_all = vcf[people].astype(str)  # shape: (n_sites, n_people)
+
+    # a hemizygous individual has only one physical copy, so targeting it isn't
+    # allele-specific -- it's a full knockout of their only copy of the gene.
+    # restrict this strategy to diploid (female) samples, identified by whether
+    # their calls carry the phase separator at all
+    is_hemizygous = ~geno_all.apply(lambda col: col.str.contains(r'\|').any())
+    dip_people = [p for p in people if not is_hemizygous[p]]
+
+    geno = geno_all[dip_people]  # shape: (n_sites, n_diploid_people)
+
+    hap1 = geno.apply(lambda col: col.str.split("|", expand=True)[0]).astype(float)
+    hap2 = geno.apply(lambda col: col.str.split("|", expand=True)[1]).astype(float)
+
     # homozygous → NaN
     mask_hom = hap1 == hap2
     hap1[mask_hom] = np.nan
     hap2[mask_hom] = np.nan
-    
+
     pos_cols = vcf["pos"].astype(str).values
-    
+
     df = pd.concat(
         [
             hap1.T.rename(index=lambda x: f"{x}.1"),
@@ -50,7 +51,7 @@ def create_haplotype_df(vcf, string_list):
         ],
         axis=0
     )
-    
+
     df.columns = pos_cols
     # remove duplicate columns
     df = df.loc[:, ~df.columns.duplicated()].copy()
@@ -59,7 +60,7 @@ def create_haplotype_df(vcf, string_list):
     tmp = df.index.to_series().str.extract(r'sample(\d+)\.(\d)')
     person_id = tmp[0].astype(int)
     hap_id = tmp[1].astype(int)
-    
+
     # sort by person id, then haplotype
     df = df.iloc[np.lexsort((hap_id, person_id))]
 
@@ -67,14 +68,14 @@ def create_haplotype_df(vcf, string_list):
     for col in df.columns:
         # get het count for the snp pos in the vcf
         first_snp = vcf.loc[(vcf["pos"] == int(col))].iloc[0]
-    
+
         vcf_het_count = first_snp.loc[
             first_snp.index.str.startswith("sample")
         ].isin(["0|1", "1|0"]).sum()
-    
+
         # get het count for the snp pos in the df
         df_het_count = (df.loc[:, col].notna().sum())/2
-        
+
         if df_het_count!=vcf_het_count:
             raise ValueError(
             f"Count mismatch (SNP: {col}): VCF_het_count={vcf_het_count}, DF_het_count={df_het_count}"
