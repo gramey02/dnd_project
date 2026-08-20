@@ -118,6 +118,10 @@ def iterative_pick_and_prune_pairs_with_tracking(df, valid_pairs):
         if a in columns_set and b in columns_set
     ]
 
+    # sometimes there may not be any pairs that have valid guides
+    if len(pairs_to_check)==0:
+        return "No valid pairs with PAM sequences nearby"
+
     # Cache column order lookup (avoid repeated get_loc)
     col_positions = {col: i for i, col in enumerate(df.columns)}
 
@@ -575,41 +579,56 @@ def main():
         # run algorithm to pick the first pair of alleles
         haplotype_names=set(list(df.index))
         result = iterative_pick_and_prune_pairs_with_tracking(df, valid_pairs)
+        if isinstance(result,str):
+            fail_fp = os.path.join(
+                        output_dir,
+                        "summary_files",
+                        "cross_strat_gRNAs",
+                        'excision_guides',
+                        "logs",
+                        f"{gene}.FAIL_excision"
+                    )
+            with open(fail_fp, "w") as f:
+                f.write("Failed because no snp pairs have PAM sites nearby.\n")
+            continue_run=False
+            h_index=np.array([0,1,2,3]) #dummy array, since the while section below should not run
+            iteration=0 # dummy var
+        else:
+            continue_run=True
+            # store these picked alleles
+            snp1 = result['picks']['snp1'].values[0]
+            snp2 = result['picks']['snp2'].values[0]
+            a1,a2 = result['picks']['haplotype'].values[0]
+            remaining_haps = result['final_df']
+            col_arrays, h_index = df_to_numpy_with_index(remaining_haps)
 
-        # store these picked alleles
-        snp1 = result['picks']['snp1'].values[0]
-        snp2 = result['picks']['snp2'].values[0]
-        a1,a2 = result['picks']['haplotype'].values[0]
-        remaining_haps = result['final_df']
-        col_arrays, h_index = df_to_numpy_with_index(remaining_haps)
+            # get the first two targeted alleles
+            targeted_alleles = [f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"]
 
-        # get the first two targeted alleles
-        targeted_alleles = [f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"]
+            # tracks the allele(s) added at each iteration
+            allele_additions_per_iter=[]
+            allele_additions_per_iter.append((f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"))
 
-        # tracks the allele(s) added at each iteration
-        allele_additions_per_iter=[]
-        allele_additions_per_iter.append((f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"))
+            # tracks the haplotypes added at each iteration
+            haplotype_additions_per_iter=[]
+            haplotype_additions_per_iter.append(haplotype_names - set(h_index)) # add those added from first pair here
 
-        # tracks the haplotypes added at each iteration
-        haplotype_additions_per_iter=[]
-        haplotype_additions_per_iter.append(haplotype_names - set(h_index)) # add those added from first pair here
-
-        # tracks the samples (aka people) captured at each iteration
-        remaining_by_sample = defaultdict(set)
-        for idx in haplotype_names:
-            remaining_by_sample[base_sample(idx)].add(idx)
-        sample_additions_per_iter = []
-        sample_additions_per_iter.append(result['samples_removed_per_iteration'][0]) # add those captured from the first pair here (should be 0, since only one haplotype should be captured so far)
-        # need to remove the already picked haplos from remaining_by_sample
-        for idx in (haplotype_names - set(h_index)):
-            base = base_sample(idx)
-            if idx in remaining_by_sample[base]:
-                remaining_by_sample[base].remove(idx)
-        iteration=0
+            # tracks the samples (aka people) captured at each iteration
+            remaining_by_sample = defaultdict(set)
+            for idx in haplotype_names:
+                remaining_by_sample[base_sample(idx)].add(idx)
+            sample_additions_per_iter = []
+            sample_additions_per_iter.append(result['samples_removed_per_iteration'][0]) # add those captured from the first pair here (should be 0, since only one haplotype should be captured so far)
+            # need to remove the already picked haplos from remaining_by_sample
+            for idx in (haplotype_names - set(h_index)):
+                base = base_sample(idx)
+                if idx in remaining_by_sample[base]:
+                    remaining_by_sample[base].remove(idx)
+            iteration=0
 
     #print('first pair selected')
 
-    while len(h_index)>0 and (iteration<max_iter):
+    while len(h_index)>0 and (iteration<max_iter) and continue_run==True:
         # get number of remaining haplotypes
         prev_remaining = len(h_index)
 
@@ -669,35 +688,36 @@ def main():
             break
         #print('next pair selected')
 
-    # generate summary df
-    summary_df = create_summary_df(allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter)
+    if continue_run==True:
+        # generate summary df
+        summary_df = create_summary_df(allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter)
 
-    # save the summary file
-    summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'excision_guides','results',gene+'_excision_gRNAs.csv'))
-    # note if it finished running
-    if summary_df is not None:
-        # note if the job completed or failed
-        success_fp = os.path.join(
-            output_dir,
-            "summary_files",
-            "cross_strat_gRNAs",
-            'excision_guides',
-            "logs",
-            f"{gene}.DONE_excision"
-        )
-        with open(success_fp, "w") as f:
-            f.write("OK\n")
-    else:
-        fail_fp = os.path.join(
-            output_dir,
-            "summary_files",
-            "cross_strat_gRNAs",
-            'excision_guides',
-            "logs",
-            f"{gene}.FAIL_excision"
-        )
-        with open(fail_fp, "w") as f:
-            f.write("Failed because summary file is None.\n")
+        # save the summary file
+        summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'excision_guides','results',gene+'_excision_gRNAs.csv'))
+        # note if it finished running
+        if summary_df is not None:
+            # note if the job completed or failed
+            success_fp = os.path.join(
+                output_dir,
+                "summary_files",
+                "cross_strat_gRNAs",
+                'excision_guides',
+                "logs",
+                f"{gene}.DONE_excision"
+            )
+            with open(success_fp, "w") as f:
+                f.write("OK\n")
+        else:
+            fail_fp = os.path.join(
+                output_dir,
+                "summary_files",
+                "cross_strat_gRNAs",
+                'excision_guides',
+                "logs",
+                f"{gene}.FAIL_excision"
+            )
+            with open(fail_fp, "w") as f:
+                f.write("Failed because summary file is None.\n")
 
 
 if __name__=='__main__':
