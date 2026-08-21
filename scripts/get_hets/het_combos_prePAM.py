@@ -38,6 +38,27 @@ def assert_uniq_val_per_row(df, col_name):
         df[col_name].nunique() == df[col_name].shape[0]
     ), f"not every row has a unique {col_name} value"
 
+def assert_unique_and_biallelic_vcf_values(vcf):
+    # 1️⃣ remove fully duplicated rows
+    vcf = vcf.drop_duplicates()
+        
+    
+    # 2️⃣ keep only rows where ref and alt are single letters
+    vcf = vcf[vcf['ref'].str.len() == 1]
+    vcf = vcf[vcf['alt'].str.len() == 1]
+
+    # remove multiallelic sites
+    if len(vcf['pos'])>len(vcf['pos'].unique()):
+        vcs = pd.DataFrame(r_clean_tdf.columns.value_counts())
+        doubled_pos=list((vcs[vcs['count']>1]).index)
+        # remove the multiallelic sites
+        vcf=vcf[~vcf['pos'].isin(doubled_pos)]
+    
+    # optional: reset index
+    vcf = vcf.reset_index(drop=True)
+    
+    return vcf
+
 def main():
     # parse input args
     args=parse_args()
@@ -78,6 +99,7 @@ def main():
     vcf_filt=vcf_filt[vcf_filt.remove_list==0]
     vcf_filt.drop(labels=['remove_list'],inplace=True,axis=1)
     vcf_filt.drop_duplicates(inplace=True)
+    vcf_filt.drop_duplicates(subset='pos', inplace=True, keep=False)
     assert_uniq_val_per_row(vcf_filt, "pos") # this function checks that all numbers of the 'pos' column are unique
 
     # filter the vcf to include only sample information

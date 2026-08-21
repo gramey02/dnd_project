@@ -237,6 +237,7 @@ def main():
         af_filename = os.path.join(af_file_dir, 'TGP_chr' + chrom + '_afs.txt')
         cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
         cur_chrom_TGP_afs=cur_chrom_TGP_afs[(cur_chrom_TGP_afs.af>=af_limit) & (cur_chrom_TGP_afs.af<=1-af_limit)]
+        cur_chrom_TGP_afs.drop_duplicates(subset='pos',keep=False,inplace=True)
         # get a list of common variant positions in and around the gene
         vcf_dict[chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt', 'af']]
     #------------------------------------------------------------------------

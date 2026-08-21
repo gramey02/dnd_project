@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('--exon_file', type=str, required=True, help='Exon information across genes.')
     parser.add_argument('--sample_map', type=str, required=True, help='Filepath mapping sampled IDs to more specific sample names.')
     parser.add_argument('--rsID_fp', type=str, required=True, help='map between position and rsID')
+    parser.add_argument('--num_samples', type=int, required=True, help='Number of samples (individuals) in the population VCFs.')
     args = parser.parse_args()
     return args
 
@@ -40,6 +41,7 @@ def main():
     exon_file=args.exon_file
     sample_map_fp=args.sample_map
     rsID_fp=args.rsID_fp
+    num_samples=args.num_samples
     strats=['indels','CRISPRoff','donor_base_edits', 'acceptor_base_edits','excision']
 
 
@@ -136,7 +138,6 @@ def main():
     # ensure that these are all biallelic--if not, remove them from consideration
 
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -179,7 +180,6 @@ def main():
     ## Load post-PAM SNPS
     post_pam_frames = []
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -227,7 +227,6 @@ def main():
 
     # get genotype frequencies
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -487,16 +486,15 @@ def main():
     # format genotype frequencies
     all_snps_reorder['formatted_genos'] = all_snps_reorder.apply(
         lambda r:
-            f"Heterozygous ({r.ref}{r.alt}) {int(r.heterozygote_freq * 100)}% ({r.het_num}/2548), "
-            + f"Homozygous ref ({r.ref}{r.ref}) {int(r.homo_ref_freq * 100)}% ({r.homo_ref_num}/2548), "
-            + f"Homozygous alt ({r.alt}{r.alt}) {int(r.homo_alt_freq * 100)}% ({r.homo_alt_num}/2548)",
+            f"Heterozygous ({r.ref}{r.alt}) {int(r.heterozygote_freq * 100)}% ({r.het_num}/{num_samples}), "
+            + f"Homozygous ref ({r.ref}{r.ref}) {int(r.homo_ref_freq * 100)}% ({r.homo_ref_num}/{num_samples}), "
+            + f"Homozygous alt ({r.alt}{r.alt}) {int(r.homo_alt_freq * 100)}% ({r.homo_alt_num}/{num_samples})",
         axis=1
     )
 
     
     ## Include population-specific frequencies
     # vcf formatting info
-    num_samples=2548
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
     string_list = list(map(str, sample_list))
     cols=['chr', 'pos', 'rsid', 'ref', 'alt', 'qual', 'filter', 'info', 'format'] + ["sample" + s for s in string_list]
@@ -520,7 +518,13 @@ def main():
         vcf_fp = os.path.join(results_dir, run_name, strat, "excavate/input_vcfs/" + gene + '_CommonVar_filtered.vcf.gz')
         if os.path.exists(vcf_fp) is False:
             continue
-        cur_vcf = pd.read_table(vcf_fp, skiprows=23, compression='gzip')
+        with gzip.open(vcf_fp, 'rt') as f:
+            n_header_lines = 0
+            for line in f:
+                if not line.startswith('##'):
+                    break
+                n_header_lines += 1
+        cur_vcf = pd.read_table(vcf_fp, skiprows=n_header_lines, compression='gzip')
         cur_vcf = assert_unique_and_biallelic_vcf_values(cur_vcf)
         full_vcf.append(cur_vcf)
     if len(full_vcf) > 0:
@@ -602,10 +606,10 @@ def main():
         # combine the data into general frequencies
         for snp,het_list in het_dict.items():
             # skips EUR,AFR merged pop
-            if pop+'_AF' not in info_df.columns:
+            if f'AF_{pop}_unrel' not in info_df.columns:
                 continue
             snp_list.append(snp)
-            af_list.append(info_df[info_df['pos']==snp][pop+'_AF'].values[0])
+            af_list.append(info_df[info_df['pos']==snp][f'AF_{pop}_unrel'].values[0])
             het_num.append(len(het_list))
             het_freq.append(len(het_list)/pop_size if pop_size > 0 else np.nan)
             homo_ref_num.append(len(ref_hom_dict[snp]))
@@ -650,7 +654,7 @@ def main():
         ha_freq  = asr[f'homo_alt_freq{pop}']
         ha_num   = asr[f'homo_alt_num{pop}']
         pop_size = asr[f'pop_size{pop}']
-        afs = asr[f'{pop}_AF']
+        afs = asr[f'AF_{pop}_unrel']
 
         asr[f'formatted_superpops_{pop}'] = (
             "Allele frequency = " + afs.astype(str) + ", " +
@@ -759,7 +763,8 @@ def main():
         '5 closest excision partners, if any':[','.join(str(i) for i in closest_partners[x]) if x in closest_partners else 'NA' for x in all_snps_reorder['pos']],
         'CRISPR/SpCas9 Targetable?': ['Yes' if x==True else 'No' for x in all_snps_reorder['CRISPR_Cas9_targetable']],
         'Flanking sequences' : all_snps_reorder['flanking_seqs'],
-        'Other Cas targetability tools':'CRISPOR - https://crispor.gi.ucsc.edu/, CRISPick - https://portals.broadinstitute.org/gppx/crispick/public'
+        'Other Cas targetability tools':'CRISPOR - https://crispor.gi.ucsc.edu/, CRISPick - https://portals.broadinstitute.org/gppx/crispick/public',
+        'SNP color coding scheme':'Please see the browser track main page or go to https://gramey02.github.io/DnD_TrackHubs_Public/track_descriptions/dnd_track_description.html'
     })
     bed_format['chromStart'] = bed_format['chromStart'].astype(int)
     bed_format['chromEnd'] = bed_format['chromEnd'].astype(int)
@@ -827,17 +832,18 @@ def main():
         string  RefAlt;        "Ref/Alt allele"
         string  af;            "Allele frequency (AF)"
         string  maf;           "Minor allele frequency (MAF)"
-        lstring genos;         "Global genotype frequencies in 1000 Genomes"
-        lstring afr;           "AFR genotype frequencies (1000 Genomes)"
-        lstring eur;           "EUR genotype frequencies (1000 Genomes)"
-        lstring amr;           "AMR genotype frequencies (1000 Genomes)"
-        lstring eas;           "EAS genotype frequencies (1000 Genomes)"
-        lstring sas;           "SAS genotype frequencies (1000 Genomes)"
-        string  editStrats;    "Targetable by the following CRISPR editing strategies"
+        lstring genos;         "Global genotype frequencies in 1000 Genomes (unrelated individuals)"
+        lstring afr;           "AFR genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring eur;           "EUR genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring amr;           "AMR genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring eas;           "EAS genotype frequencies (1000 Genomes, unrelated individuals)"
+        lstring sas;           "SAS genotype frequencies (1000 Genomes, unrelated individuals)"
+        string  editStrats;    "CRISPR editing strategy"
         string  exParts;       "Five closest excision partners, if any"
         string  PAMtargetable; "CRISPR/SpCas9 Targetable?"
         lstring flanking;      "+/- 25 bp flanking variant"
         string  castool;       "Cas/gRNA generation tools"
+        lstring colorScheme;   "Link to browser track color coding scheme"
     )
     """
 

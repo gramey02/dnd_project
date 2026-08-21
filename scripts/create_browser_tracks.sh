@@ -55,17 +55,15 @@ else
      "$bed_script" "$param_file" "$unique_genes_file" "$output_dir"
 fi
 
-echo "Finished promoter BED creation."
+echo "Finished single gene BED creation."
 
 
 # --------------------------------------------------------
-# Merge resulting files into one bed file across all genes
+# Check that per-gene BED files were created
 # --------------------------------------------------------
 bed_files=( "$output_dir"/summary_files/browser_tracks/per_gene_files/*/*.bed )
 
-if [[ -e "${bed_files[0]}" ]]; then
-    cat "${bed_files[@]}" > "$output_dir/summary_files/browser_tracks/all_genes_together/all_genes.bed"
-else
+if [[ ! -e "${bed_files[0]}" ]]; then
     echo "No BED files found under per_gene_files"
 fi
 

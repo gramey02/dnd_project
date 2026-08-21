@@ -21,29 +21,30 @@ def create_haplotype_df(vcf, string_list):
     vcf=vcf.copy()
     if 'edit_strategy' in vcf.columns:
         vcf.drop(labels=['edit_strategy'], axis=1, inplace=True)
-    
-    # more efficient haplotype assignment
+
     people = ["sample" + s for s in string_list]
-    
-    sample_haps_suffix = (
-        [f"{p}.1" for p in people] +
-        [f"{p}.2" for p in people]
-    )
-    sample_haps_suffix.sort()
-    
-    geno = vcf[people]  # shape: (n_sites, n_people)
-    
-    hap1 = geno.apply(lambda col: col.str.split("|", expand=True)[0])
-    hap2 = geno.apply(lambda col: col.str.split("|", expand=True)[1])
-    
-    hap1 = hap1.astype(float)
-    hap2 = hap2.astype(float)
-    
+
+    # force string dtype up front, so a column that's all bare digits (hemizygous
+    # calls, e.g. chrX/Y in males) doesn't get inferred as int64 and break .str
+    geno_all = vcf[people].astype(str)  # shape: (n_sites, n_people)
+
+    # excision removes one haplotype copy entirely; for a hemizygous male that
+    # knocks out his only copy of the gene rather than sparing a healthy one,
+    # so this strategy only applies to diploid (female) samples -- identified
+    # by whether their calls carry the phase separator at all
+    is_hemizygous = ~geno_all.apply(lambda col: col.str.contains(r'\|').any())
+    dip_people = [p for p in people if not is_hemizygous[p]]
+
+    geno = geno_all[dip_people]  # shape: (n_sites, n_diploid_people)
+
+    hap1 = geno.apply(lambda col: col.str.split("|", expand=True)[0]).astype(float)
+    hap2 = geno.apply(lambda col: col.str.split("|", expand=True)[1]).astype(float)
+
     # homozygous → NaN
     mask_hom = hap1 == hap2
     hap1[mask_hom] = np.nan
     hap2[mask_hom] = np.nan
-    
+
     pos_cols = vcf["pos"].astype(str).values
     
     df = pd.concat(
@@ -116,6 +117,10 @@ def iterative_pick_and_prune_pairs_with_tracking(df, valid_pairs):
         for (a, b) in valid_pair_set
         if a in columns_set and b in columns_set
     ]
+
+    # sometimes there may not be any pairs that have valid guides
+    if len(pairs_to_check)==0:
+        return "No valid pairs with PAM sequences nearby"
 
     # Cache column order lookup (avoid repeated get_loc)
     col_positions = {col: i for i, col in enumerate(df.columns)}
@@ -463,6 +468,52 @@ def create_checkpoint(allele_additions_per_iter, haplotype_additions_per_iter, s
         pickle.dump(ckpt_list, fp)
     return None
 
+def transpose_and_clean(raw_r_tdf):
+    r_df = raw_r_tdf.copy() # make a copy
+    r_tdf = r_df.transpose() # transpose the copy
+    r_tdf.columns = r_tdf.loc["pos", :].values # make the column names the numbers in the position column
+    key_df = r_df.loc[
+        :, ['chr', 'pos', 'ref', 'alt']
+    ].copy()
+
+    clean_r_tdf = r_tdf.iloc[9:, :].copy() # remove some of the initial unneccessary columns
+
+    return clean_r_tdf, key_df
+def make_list_of_hets(r_clean_tdf):
+    # for each SNP, make a list of heterozygous individuals
+    indviduals = r_clean_tdf.index.tolist()
+    bool_df = r_clean_tdf.map(lambda x: ((x == "0|1") | (x == "1|0"))).copy()
+
+    snp_het_indviduals_dict = dict() # make a dictionary
+    for snp in r_clean_tdf.columns:
+        het_individual = bool_df.index[bool_df[snp]].tolist()
+        snp_het_indviduals_dict[snp] = het_individual
+
+    return snp_het_indviduals_dict
+
+def calc_het_frequency(vcf, ds_vars):
+    t_vcf,key_df = transpose_and_clean(vcf)
+    total_snps = len(t_vcf.columns)
+    het_dict = make_list_of_hets(t_vcf)
+    snps=[]
+    het_nums=[]
+    for snp, hets in het_dict.items():
+        snps.append(snp)
+        het_nums.append(len(hets))
+    paired = sorted(
+        zip(snps, het_nums),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    # select snps with the top heterozygosity frequency
+    if total_snps<ds_vars:
+        ds_factor = total_snps
+    else:
+        ds_factor = ds_vars
+    # Take top N specified snp positions
+    selected_snps = [pos for pos, count in paired[:ds_factor]]
+    return selected_snps
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output_dir', type = str, required = True, help = 'Output directory for het information.')
@@ -471,6 +522,8 @@ def parse_args():
     parser.add_argument('--valid_pairs_fp', type=str, required=True, help='Run all non-excision strats together or separately.')
     parser.add_argument('--vcf_dir', type=str, required=True, help='VCF directory for guide-filtered vcfs.')
     parser.add_argument('--max_iter', type=int, required=True, help='max number of iterations on which to pick gRNAs.')
+    parser.add_argument('--max_pairs_thresh', type=int, required=True, help='Threshold of number of valid excision pairs at which we should downsample.')
+    parser.add_argument('--ds_threshold', type=int, required=True, help='Number of individual snps to downsample to for genes with many snp pairs.')
     args = parser.parse_args()
     return args
 
@@ -483,6 +536,8 @@ def main():
     valid_pairs_fp=valid_pairs_fp+'/'+gene+'_valid_snp_pairs.pkl'
     vcf_dir=args.vcf_dir
     max_iter=args.max_iter
+    max_pairs_thresh=args.max_pairs_thresh
+    ds_threshold=args.ds_threshold
 
     # gene='ABCC8' # 'NEFL'
     # num_samples=2548
@@ -508,6 +563,13 @@ def main():
         valid_pairs = pickle.load(fp)
     valid_pairs=set(valid_pairs) # this allows for faster lookup in the subsequent functions
 
+    # if the set of valid pairs is above a certain number, let's downsample the variants
+    if len(valid_pairs)>max_pairs_thresh:
+        # downsample the valid pairs based on the snps with the highest heterozygote frequencies
+        selected_snps = calc_het_frequency(vcf, ds_threshold)
+        valid_pairs = {x for x in valid_pairs if x[0] in selected_snps or x[1] in selected_snps}
+        
+
     # load a checkpoint if it already exists
     ckpt_dir=output_dir + '/summary_files/cross_strat_gRNAs/excision_guides/checkpoints/' + gene + '_ckpt.pkl'
     if os.path.exists(ckpt_dir):
@@ -517,41 +579,56 @@ def main():
         # run algorithm to pick the first pair of alleles
         haplotype_names=set(list(df.index))
         result = iterative_pick_and_prune_pairs_with_tracking(df, valid_pairs)
+        if isinstance(result,str):
+            fail_fp = os.path.join(
+                        output_dir,
+                        "summary_files",
+                        "cross_strat_gRNAs",
+                        'excision_guides',
+                        "logs",
+                        f"{gene}.FAIL_excision"
+                    )
+            with open(fail_fp, "w") as f:
+                f.write("Failed because no snp pairs have PAM sites nearby.\n")
+            continue_run=False
+            h_index=np.array([0,1,2,3]) #dummy array, since the while section below should not run
+            iteration=0 # dummy var
+        else:
+            continue_run=True
+            # store these picked alleles
+            snp1 = result['picks']['snp1'].values[0]
+            snp2 = result['picks']['snp2'].values[0]
+            a1,a2 = result['picks']['haplotype'].values[0]
+            remaining_haps = result['final_df']
+            col_arrays, h_index = df_to_numpy_with_index(remaining_haps)
 
-        # store these picked alleles
-        snp1 = result['picks']['snp1'].values[0]
-        snp2 = result['picks']['snp2'].values[0]
-        a1,a2 = result['picks']['haplotype'].values[0]
-        remaining_haps = result['final_df']
-        col_arrays, h_index = df_to_numpy_with_index(remaining_haps)
+            # get the first two targeted alleles
+            targeted_alleles = [f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"]
 
-        # get the first two targeted alleles
-        targeted_alleles = [f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"]
+            # tracks the allele(s) added at each iteration
+            allele_additions_per_iter=[]
+            allele_additions_per_iter.append((f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"))
 
-        # tracks the allele(s) added at each iteration
-        allele_additions_per_iter=[]
-        allele_additions_per_iter.append((f"{snp1}_{int(a1)}", f"{snp2}_{int(a2)}"))
+            # tracks the haplotypes added at each iteration
+            haplotype_additions_per_iter=[]
+            haplotype_additions_per_iter.append(haplotype_names - set(h_index)) # add those added from first pair here
 
-        # tracks the haplotypes added at each iteration
-        haplotype_additions_per_iter=[]
-        haplotype_additions_per_iter.append(haplotype_names - set(h_index)) # add those added from first pair here
-
-        # tracks the samples (aka people) captured at each iteration
-        remaining_by_sample = defaultdict(set)
-        for idx in haplotype_names:
-            remaining_by_sample[base_sample(idx)].add(idx)
-        sample_additions_per_iter = []
-        sample_additions_per_iter.append(result['samples_removed_per_iteration'][0]) # add those captured from the first pair here (should be 0, since only one haplotype should be captured so far)
-        # need to remove the already picked haplos from remaining_by_sample
-        for idx in (haplotype_names - set(h_index)):
-            base = base_sample(idx)
-            if idx in remaining_by_sample[base]:
-                remaining_by_sample[base].remove(idx)
-        iteration=0
+            # tracks the samples (aka people) captured at each iteration
+            remaining_by_sample = defaultdict(set)
+            for idx in haplotype_names:
+                remaining_by_sample[base_sample(idx)].add(idx)
+            sample_additions_per_iter = []
+            sample_additions_per_iter.append(result['samples_removed_per_iteration'][0]) # add those captured from the first pair here (should be 0, since only one haplotype should be captured so far)
+            # need to remove the already picked haplos from remaining_by_sample
+            for idx in (haplotype_names - set(h_index)):
+                base = base_sample(idx)
+                if idx in remaining_by_sample[base]:
+                    remaining_by_sample[base].remove(idx)
+            iteration=0
 
     #print('first pair selected')
 
-    while len(h_index)>0 and (iteration<max_iter):
+    while len(h_index)>0 and (iteration<max_iter) and continue_run==True:
         # get number of remaining haplotypes
         prev_remaining = len(h_index)
 
@@ -611,35 +688,36 @@ def main():
             break
         #print('next pair selected')
 
-    # generate summary df
-    summary_df = create_summary_df(allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter)
+    if continue_run==True:
+        # generate summary df
+        summary_df = create_summary_df(allele_additions_per_iter, haplotype_additions_per_iter, sample_additions_per_iter)
 
-    # save the summary file
-    summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'excision_guides','results',gene+'_excision_gRNAs.csv'))
-    # note if it finished running
-    if summary_df is not None:
-        # note if the job completed or failed
-        success_fp = os.path.join(
-            output_dir,
-            "summary_files",
-            "cross_strat_gRNAs",
-            'excision_guides',
-            "logs",
-            f"{gene}.DONE_excision"
-        )
-        with open(success_fp, "w") as f:
-            f.write("OK\n")
-    else:
-        fail_fp = os.path.join(
-            output_dir,
-            "summary_files",
-            "cross_strat_gRNAs",
-            'excision_guides',
-            "logs",
-            f"{gene}.FAIL_excision"
-        )
-        with open(fail_fp, "w") as f:
-            f.write("Failed because summary file is None.\n")
+        # save the summary file
+        summary_df.to_csv(os.path.join(output_dir, 'summary_files', 'cross_strat_gRNAs', 'excision_guides','results',gene+'_excision_gRNAs.csv'))
+        # note if it finished running
+        if summary_df is not None:
+            # note if the job completed or failed
+            success_fp = os.path.join(
+                output_dir,
+                "summary_files",
+                "cross_strat_gRNAs",
+                'excision_guides',
+                "logs",
+                f"{gene}.DONE_excision"
+            )
+            with open(success_fp, "w") as f:
+                f.write("OK\n")
+        else:
+            fail_fp = os.path.join(
+                output_dir,
+                "summary_files",
+                "cross_strat_gRNAs",
+                'excision_guides',
+                "logs",
+                f"{gene}.FAIL_excision"
+            )
+            with open(fail_fp, "w") as f:
+                f.write("Failed because summary file is None.\n")
 
 
 if __name__=='__main__':

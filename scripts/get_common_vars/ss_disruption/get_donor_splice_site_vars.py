@@ -105,6 +105,7 @@ def main():
         )
 
         df = df[(df.af >= af_limit) & (df.af <= 1 - af_limit)]
+        df.drop_duplicates(subset='pos',keep=False,inplace=True)
         vcf_dict[chrom] = df[['chrom','pos','af']]
 
     # =========================================================

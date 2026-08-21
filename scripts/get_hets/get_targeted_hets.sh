@@ -20,4 +20,5 @@ script="$script_dir/get_hets/get_targeted_hets.py"
 python3 "$script" --output_dir "$output_dir" \
     --gene_info "$gene_info" \
     --excavate_output_dir "$excavate_output_dir" \
-    --filtered_vcf_dir "$filtered_vcf_dir"
+    --filtered_vcf_dir "$filtered_vcf_dir" \
+    --num_samples "$NUM_SAMPLES"

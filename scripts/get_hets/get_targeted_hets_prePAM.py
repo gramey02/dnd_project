@@ -74,6 +74,7 @@ def main():
         vcf['remove'] = remove
         vcf=vcf[vcf['remove']!=1]
         vcf.drop(labels=['remove'],axis=1,inplace=True)
+        vcf.drop_duplicates(subset='pos', inplace=True, keep=False)
         vcf_clean_tdf, vcf_key_df = transpose_and_clean(vcf)
 
         # this outputs a dictionary where the keys are positions, and the values are lists of samples that are heterozygous for those positions

@@ -37,7 +37,7 @@ echo "Started identifying ubiquitous acceptor regions & common vars..."
 qsub -sync y -l mem_free=1G -l h_rt=04:20:00 -o "$project_root/logs/out/get_acceptor_ss_vars.out" -e "$project_root/logs/err/get_acceptor_ss_vars.err" "$acceptor_common_vars" "$output_dir" "$param_file" "$exon_file"
 echo "Finished identifiying ubiquitous acceptor regions & common vars."
 
-# script to generate summary files & plots quantifying how this did
+#script to generate summary files & plots quantifying how this did
 
 # get number of genes that have common vars in acceptor regions
 common_var_genes="$output_dir/ubiq_region_CommonVars/CommonVars_VarNumOver0_summary_noIDX.txt"

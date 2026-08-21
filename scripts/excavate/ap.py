@@ -355,7 +355,9 @@ def find_guides(snplist, sequence, cas_obj, max_snp_pos_in_protospacer, guide_le
        
         snppos_in_snpregion = guide_len+pam_len-1
     
-        chrom_num = str(re.findall(r'\d+', str(snplist['chrom'][0]))[0])
+        chrom_str = str(snplist['chrom'][0])
+        digits = re.findall(r'\d+', chrom_str)
+        chrom_num = digits[0] if digits else chrom_str
     
         #find guides on plus strand
         for j in range(len(plus_starts)):
