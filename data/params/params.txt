@@ -46,6 +46,7 @@ EDITING_WINDOW_SIZE=4 # int: editing window size of base editors (e.g., ABEs, CB
 DONOR_SNP_REGION="3-21" # OG: "3-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice donor sites
 ACCEPTOR_SNP_REGION="4-21" # OG: "4-21" # str: will be parsed in subsequent files. Window in which we should look for common genetic variants nearby splice acceptor sites
 BASE_EDITOR="both" # str: options are "ABE", "CBE", or "ABE/CBE" to denote which base editor to limit targeted variants to
+COMBINE_BASE_EDITS=1 # int: 0 or 1, whether or not we should combine snps across base editing strategies when running the greedy algorithm
 
 # filepath params to look for other data (e.g., chromosome list for when we're running array jobs)
 AF_FILE_DIR="data/multiallelic_afs_high_coverage" # "data/biallelic_afs_high_coverage" # str: directory containing TGP_chr*_afs.txt files
