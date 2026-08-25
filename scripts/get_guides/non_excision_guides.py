@@ -223,6 +223,7 @@ def parse_args():
     parser.add_argument('--gene', type = str, required = True, help = 'Current gene to prioritize guides for.')
     parser.add_argument('--num_samples', type=int, required=True, help = 'Number of samples in vcf files')
     parser.add_argument('--all_strats_together', type=str, required=True, help='Run all non-excision strats together or separately.')
+    parser.add_argument('--combine_base_edits', type=int, required=True, help='0 or 1, combine donor/acceptor base edit sites.')
     args = parser.parse_args()
     return args
 
@@ -233,6 +234,10 @@ def main():
     output_dir = args.output_dir
     gene=args.gene
     all_strats_together = args.all_strats_together
+    combine_base_edits=args.combine_base_edits
+    together_flag = all_strats_together in ('1', 'True', 'true')
+    if combine_base_edits==1 and not together_flag:
+        strats=['indels','CRISPRoff','base_edits']
 
     # set up variables for loading vcf files
     sample_list = list(range(1,num_samples+1)) # number of people in 1KG
@@ -257,11 +262,11 @@ def main():
         if vcf is None or vcf.empty:
             extra="No vcf loaded for all_non_excision_strats."
             log_dir = os.path.join(output_dir, "summary_files/cross_strat_gRNAs/non_excision_guides/logs")
+            os.makedirs(log_dir, exist_ok=True)
             log_fp = os.path.join(log_dir, f"{gene}.log")
             if not os.path.exists(log_fp):
                 with open(log_fp, "w") as f:
                     f.write("timestamp\tgene\tremaining_haps\textra\n")
-            os.makedirs(log_dir, exist_ok=True)
             log_fp = os.path.join(log_dir, f"{gene}.log")
             ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             line = (
@@ -303,15 +308,42 @@ def main():
                     f.write("OK\n")
     else:
         for strat in strats:
-            vcf=None
-            filtered_vcf_dir = os.path.join(output_dir, strat, 'excavate/Guide_filtered_vcfs')
-            fp_to_check = os.path.join(output_dir, strat, 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf')
-            if (gene + '_guide_filtered.vcf') in os.listdir(filtered_vcf_dir):
-                # load gene's snps
-                cur_vcf = pd.read_table(fp_to_check, comment='#', header=None)
-                cur_vcf.columns=cols
-                cur_vcf['edit_strategy']=strat
-                vcf=cur_vcf.copy()
+            if strat=='base_edits':
+                vcf=None
+                # check if the donor base edit file exists
+                has_donor_sites = os.path.exists(os.path.join(output_dir, 'donor_base_edits', 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf'))
+                # check if the acceptor base edit file exists
+                has_acc_sites = os.path.exists(os.path.join(output_dir, 'acceptor_base_edits', 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf'))
+                if has_donor_sites & has_acc_sites:
+                    donor_vcf=pd.read_table(os.path.join(output_dir, 'donor_base_edits', 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf'), comment='#', header=None)
+                    donor_vcf.columns=cols
+                    acc_vcf=pd.read_table(os.path.join(output_dir, 'acceptor_base_edits', 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf'), comment='#', header=None)
+                    acc_vcf.columns=cols
+                    cur_vcf=pd.concat([donor_vcf,acc_vcf]).drop_duplicates()
+                    cur_vcf['edit_strategy']=strat
+                    vcf=cur_vcf.copy()
+                elif has_donor_sites:
+                    donor_vcf=pd.read_table(os.path.join(output_dir, 'donor_base_edits', 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf'), comment='#', header=None)
+                    donor_vcf.columns=cols
+                    donor_vcf['edit_strategy']=strat
+                    vcf=donor_vcf.copy()
+                elif has_acc_sites:
+                    acc_vcf=pd.read_table(os.path.join(output_dir, 'acceptor_base_edits', 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf'), comment='#', header=None)
+                    acc_vcf.columns=cols
+                    acc_vcf['edit_strategy']=strat
+                    vcf=acc_vcf.copy()
+                else:
+                    continue
+            else:
+                vcf=None
+                filtered_vcf_dir = os.path.join(output_dir, strat, 'excavate/Guide_filtered_vcfs')
+                fp_to_check = os.path.join(output_dir, strat, 'excavate/Guide_filtered_vcfs', gene + '_guide_filtered.vcf')
+                if (gene + '_guide_filtered.vcf') in os.listdir(filtered_vcf_dir):
+                    # load gene's snps
+                    cur_vcf = pd.read_table(fp_to_check, comment='#', header=None)
+                    cur_vcf.columns=cols
+                    cur_vcf['edit_strategy']=strat
+                    vcf=cur_vcf.copy()
 
             # if no vcf is loaded, note it in a log
             if vcf is None or vcf.empty:
