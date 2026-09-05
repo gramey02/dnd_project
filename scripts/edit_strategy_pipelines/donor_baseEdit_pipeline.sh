@@ -60,9 +60,9 @@ echo "Finished creating excavate inputs."
 run_excavate_script="$project_root/scripts/excavate/run_excavate.sh"
 echo "Started running EXCAVATE..."
 if [[ "$OFF_TARGETS" == "True" ]]; then
-    qsub -t 1-"$num_common_var_genes" -l mem_free=1G -l h_rt=03:00:00 -sync y -o "$project_root/logs/out/excavate_donor.out" -e "$project_root/logs/err/excavate_donor.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
+    qsub -t 1-"$num_common_var_genes" -l mem_free=4G -l h_rt=03:00:00 -sync y -o "$project_root/logs/out/excavate_donor.out" -e "$project_root/logs/err/excavate_donor.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 else
-    qsub -t 1-"$num_common_var_genes" -l mem_free=1G -l h_rt=00:45:00 -sync y -o "$project_root/logs/out/excavate_donor.out" -e "$project_root/logs/err/excavate_donor.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
+    qsub -t 1-"$num_common_var_genes" -l mem_free=4G -l h_rt=00:45:00 -sync y -o "$project_root/logs/out/excavate_donor.out" -e "$project_root/logs/err/excavate_donor.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 fi
 echo "Finished running EXCAVATE."
 

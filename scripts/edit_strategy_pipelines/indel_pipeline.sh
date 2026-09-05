@@ -54,7 +54,7 @@ echo "Finished creating excavate inputs."
 # script to run excavate
 run_excavate_script="$project_root/scripts/excavate/run_excavate.sh"
 echo "Started running EXCAVATE..."
-qsub -t 1-"$num_common_var_genes" -l mem_free=1G -l h_rt=04:45:00 -sync y -o "$project_root/logs/out/excavate_indels.out" -e "$project_root/logs/err/excavate_indels.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
+qsub -t 1-"$num_common_var_genes" -l mem_free=4G -l h_rt=04:45:00 -sync y -o "$project_root/logs/out/excavate_indels.out" -e "$project_root/logs/err/excavate_indels.err" "$run_excavate_script" "$output_dir" "$param_file" "$input_metadata"
 echo "Finished running EXCAVATE."
 
 # generate text files for the valid guides so you can filter the vcfs accordingly
