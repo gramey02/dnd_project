@@ -18,14 +18,14 @@ ORIGINAL_EXON_FILE="results/RUN_04_15_26/filtered_transcripts/filtered_exon_info
 #ORIGINAL_EXON_FILE="data/dnd_ensembl/protein_coding_single_transcript.csv"
 
 # params for identifying and filtering common variants
-AF_LIMIT=0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
+AF_LIMIT=0.05 # 0.1 # float: threshold at which we'll consider a genetic variant 'common' and keeping for further analysis
 USE_UBIQUITOUS_REGIONS=1 # boolean: whether or not the common variants should only be considered if they are present in all gene transcripts (aka, in all transcripts that pass potential transcript filtering)
 USE_ALL_REGIONS=0 # boolean: whether or not the common variants should be considered if they're in non-ubiquitous regions (both this paramter and the previous param can be run simultaneously)
 REQUIRED_TRANSCRIPT_PROPORTION=0.5 # float: pertains to the previous parameter. Proportion of transcripts of a common variant should occur in to be considered.
 DOWNSAMPLE="True" # str: tells the excision script, where variants can reach the thousands, whether or not to split genes with too many variants into batches for EXCAVATE (no variants are dropped; batches are merged back into one gene folder after EXCAVATE runs)
 DS_THRESHOLD=258 # int: max number of variants to run through EXCAVATE at once per gene/batch, above which a gene's variants get split into multiple batches
 LARGE_GENE_PAIR_THRESHOLD=800000 # int: max number of valid SNP pairs a gene can have before het_combos.sh routes it to a separate array job with a much larger mem_free/h_rt (the greedy pair-selection algorithm scales badly with pair count). Set with margin below TRPM3 (1,169,768 pairs, SIGKILLed on the normal budget in RUN_MULTIALLELIC despite completing once before) and above the next-largest gene, CACNA1C (585,257 pairs).
-MA_THRESHOLD=0.01 # float: threshold at which we'll keep the snp locus, even if it has a rare third allele at a frequence of MA_THRESHOLD (e.g., 3rd allele is at 0.01)
+MA_THRESHOLD=0.05 # float: threshold at which we'll keep the snp locus, even if it has a rare third allele at a frequence of MA_THRESHOLD (e.g., 3rd allele is at 0.01)
 
 # params for running NMD analysis
 RUN_NMD=1 # boolean: whether or not we run nonsense mediated decay analysis along with certain editing strategies
@@ -78,6 +78,6 @@ EDIT_STRATS=("indels" "acceptor_base_edits" "donor_base_edits" "CRISPRoff" "exci
 
 # params for storing all of the outputs
 PROJECT_ROOT="/wynton/home/capra/gramey02/dnd_project" # project root
-RUN_NAME="RUN_MULTIALLELIC" #"RUN_$(date +%m_%d_%y)" # "RUN_06_22_26" before this for indels #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
+RUN_NAME="RUN_$(date +%m_%d_%y)" # "RUN_MULTIALLELIC" #"RUN_$(date +%m_%d_%y)" # "RUN_06_22_26" before this for indels #"RUN_$(date +%m_%d_%y)" #standard run for results: "RUN_04_23_26" # run name is the current date # "RUN_20bp" # "RUN_04_15_26"
 OUTPUT_DIR="results/"
 SUMMARY_FILE=1 # boolean: if true, create a summary file distilling the information obtained for each editing strategy (e.g., how many genes are captured by each strategy, how many heterozygous individuals are captured, etc.)
