@@ -13,4 +13,9 @@ script_dir="$project_root/scripts"
 script="$script_dir/get_common_vars/excision/find_excision_commonVars.py"
 exon_file="$4"
 
-python3 "$script" --output_dir "$output_dir" --gene_info "$gene_info" --af_limit "$AF_LIMIT" --af_file_dir "$project_root/$AF_FILE_DIR" --exon_file "$project_root/$exon_file" --nearby_gene_filter "$FILTER_OUT_NEARBY_GENES"
+top_n_arg=()
+if [[ "$ALL_PC_GENE_RUN" == "True" ]]; then
+    top_n_arg=(--top_n_common_snps "$TOP_N_COMMON_SNPS_ALL_PC")
+fi
+
+python3 "$script" --output_dir "$output_dir" --gene_info "$gene_info" --af_limit "$AF_LIMIT" --af_file_dir "$project_root/$AF_FILE_DIR" --exon_file "$project_root/$exon_file" --nearby_gene_filter "$FILTER_OUT_NEARBY_GENES" "${top_n_arg[@]}"

@@ -8,6 +8,19 @@ import pickle
 import pysam
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def atomic_pickle_dump(obj, path):
+    # write-then-rename so concurrent array tasks never see a partially-written file under its final name
+    tmp_path = path + '.tmp'
+    with open(tmp_path, 'wb') as f:
+        pickle.dump(obj, f)
+    os.rename(tmp_path, path)
+
+def atomic_to_csv(df, path, **kwargs):
+    tmp_path = path + '.tmp'
+    df.to_csv(tmp_path, **kwargs)
+    os.rename(tmp_path, path)
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def calc_gc_content(chrom = None,
                     start_region=None,
                     end_region=None,
@@ -51,6 +64,8 @@ def parse_args():
     parser.add_argument('--gc_threshold', type=float, required=False, help='GC content threshold to filter promoters by.')
     parser.add_argument('--use_islands', type=str,required=True, help='Boolean that tells the script whether to filter promoter regions by overlap with a CpG island or by average GC threshold of the promoter region')
     parser.add_argument('--ref_genome_fasta', type=str, required=True, help='Reference genome fasta file path.')
+    parser.add_argument('--chrom', type=str, required=True, help='Chromosome to process.')
+    parser.add_argument('--total_num_chroms', type=int, required=True, help='Total number of unique chromosomes for gene set of interest.')
     args = parser.parse_args()
     return args
 
@@ -68,13 +83,17 @@ def main():
     gc_thresh=args.gc_threshold
     use_islands=args.use_islands
     ref_genome_fasta=args.ref_genome_fasta
+    chrom=args.chrom
+    total_num_chroms=args.total_num_chroms
 
     # load cpgs
     cpg_df = pd.read_table(cpg_file)
     cpg_df.columns=['chrom', 'chromStart', 'chromEnd', 'cpg_name', 'length', 'cpgNum', 'gcNum', 'perCpg', 'perGc', 'obsExp']
     chroms=['chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrX']
     cpg_df=cpg_df[cpg_df['chrom'].isin(chroms)]
-    
+    # only need this chromosome's cpg islands
+    cpg_df=cpg_df[cpg_df['chrom']=='chr'+str(chrom)]
+
     # load gene & transcript information
     dtype_dict_small={'chromosome_name':'str'} # set type of one of the columns, since it's ambiguous atm
     gt_df = pd.read_csv(gt_file,index_col=0,dtype=dtype_dict_small)
@@ -83,6 +102,8 @@ def main():
     # let's also filter to protein coding transcripts only
     protein_coding_biotypes=['protein_coding','nonsense_mediated_decay', 'non_stop_decay', 'lncRNA', 'miRNA']
     gt_df=gt_df[gt_df.transcript_biotype.isin(protein_coding_biotypes)].reset_index(drop=True) # ge_cds = gene_exons, coding sequences
+    # only process this chromosome's genes (this script is run as one SGE array task per chromosome)
+    gt_df=gt_df[gt_df.chromosome_name==chrom].reset_index(drop=True)
 
     # get range of promoter for each transcript
     promoter_starts=[]
@@ -193,9 +214,10 @@ def main():
                 gene_cpg_dict[row.ensembl_gene_id]=[overlapping_cpgs.cpg_name.values[0], overlapping_cpgs.chromStart.values[0], overlapping_cpgs.chromEnd.values[0]]
                 overlaps_cpg_island.append(1)
                 overlap_amount.append(overlapping_cpgs.overlap.values[0])
-        with open('data/cpg_islands/dhs_CpGIsland_Overlap_dict.pkl', 'wb') as file:
-            pickle.dump(gene_cpg_dict, file)
         #counter+=1
+    ubiq_dir = output_dir + '/ubiq_regions/'
+    atomic_pickle_dump(gene_cpg_dict, ubiq_dir + 'dhs_CpGIsland_Overlap_chr' + chrom + '_dict.pkl')
+    # merging across chromosomes now happens in a separate post-array step (merge_promoter_common_vars.py)
     # merge with larger df
     cpg_data = pd.DataFrame({
         'ensembl_gene_id':gene_list,
@@ -227,19 +249,19 @@ def main():
         else:
             shared_promoter_regions[row.hgnc_symbol]=['No shared promoter regions']
     # save the shared promoter region information
-    with open(output_dir + "/ubiq_regions/ubiq_promoters_ALL_chroms.pkl",'wb') as fp:
-        pickle.dump(shared_promoter_regions, fp)
+    atomic_pickle_dump(shared_promoter_regions, ubiq_dir + "ubiq_promoters_chr" + chrom + ".pkl")
+    # merging across chromosomes now happens in a separate post-array step (merge_promoter_common_vars.py)
     #------------------------------------------------------------------------
     # load allele frequency files for common variant localization
     vcf_dict={}
-    chroms = list(set(gene_chrom_map.values()))
-    for chrom in chroms:
-        af_filename = os.path.join(af_file_dir, 'TGP_chr' + chrom + '_afs.txt')
+    genes_chroms = list(set(gene_chrom_map.values()))
+    for gene_chrom in genes_chroms:
+        af_filename = os.path.join(af_file_dir, 'TGP_chr' + gene_chrom + '_afs.txt')
         cur_chrom_TGP_afs = pd.read_csv(af_filename, sep=' ', names = ['chrom', 'pos', 'ref', 'alt', 'ac', 'an', 'af', 'afr_af', 'amr_af', 'eas_af', 'eur_af', 'sas_af'])
         cur_chrom_TGP_afs=cur_chrom_TGP_afs[(cur_chrom_TGP_afs.af>=af_limit) & (cur_chrom_TGP_afs.af<=1-af_limit)]
         cur_chrom_TGP_afs.drop_duplicates(subset='pos',keep=False,inplace=True)
         # get a list of common variant positions in and around the gene
-        vcf_dict[chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt', 'af']]
+        vcf_dict[gene_chrom] = cur_chrom_TGP_afs[['chrom','pos','ref','alt', 'af']]
     #------------------------------------------------------------------------
     # finally, locate the common vars in the shared promoter regions
     common_var_info={}
@@ -320,14 +342,11 @@ def main():
     # reformat
     promoter_cv_df.rename(columns={'gene':'hgnc_symbol'},inplace=True)
     promoter_df_merged = promoter_cv_df.merge(gt_df_filt[['hgnc_symbol','ensembl_gene_id','chromosome_name','transcripts_have_overlapping_promoters','avg_promoter_GC_percent','shared_promoter_overlap_length','overlaps_CpGIsland']], on='hgnc_symbol',how='left')
-    # save the dictionary
-    promoter_df_merged.to_csv(output_dir + '/ubiq_region_CommonVars/CommonVars_ALL_summary.txt',sep='\t')
-    promoter_df_merged_small=promoter_df_merged[['hgnc_symbol','num_common_vars_in_shared_promoters','chromosome_name']]
-    promoter_df_merged_small.to_csv(output_dir + "/ubiq_region_CommonVars/CommonVars_ALL_summary_noIDX.txt", sep='\t', header=None, index=None)
-    with open(output_dir + '/ubiq_region_CommonVars/CommonVars_ALL_dict.pkl','wb') as file:
-        pickle.dump(final_var_info,file)
-
-
+    # save this chromosome's results
+    common_vars_savepath = output_dir + '/ubiq_region_CommonVars/'
+    atomic_to_csv(promoter_df_merged, common_vars_savepath + 'CommonVars_chr' + chrom + '_summary.txt', sep='\t')
+    atomic_pickle_dump(final_var_info, common_vars_savepath + 'CommonVars_chr' + chrom + '_dict.pkl')
+    # merging across chromosomes now happens in a separate post-array step (merge_promoter_common_vars.py)
 
 
 # -----------------------------------------------------------------------------------------------

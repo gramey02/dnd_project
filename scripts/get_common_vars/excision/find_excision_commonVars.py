@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument('--af_file_dir', type=str, required=True, help="Directory containing TGP_chr*_afs.txt files.")
     parser.add_argument('--gene_info', type=str,required=True, help="file to the excision windows for each gene.")
     parser.add_argument('--nearby_gene_filter', type=str,required=True, help="Boolean to tell us if excision windows were filtered based on other genes in the window.")
+    parser.add_argument('--top_n_common_snps', type=int, required=False, default=None, help="If set, keep only the top N common SNPs per gene (ranked by closeness to 0.5 allele frequency).")
     args = parser.parse_args()
     return args
 
@@ -31,6 +32,7 @@ def main():
     af_file_dir=args.af_file_dir
     gene_df=pd.read_csv(args.gene_info, sep='\t')
     nearby_gene_filter=args.nearby_gene_filter
+    top_n_common_snps=args.top_n_common_snps
 
     # load exon file
     exon_df=pd.read_csv(exon_file,index_col=0,dtype={'chromosome_name':'str'})
@@ -66,7 +68,11 @@ def main():
             cur_vcf_filt = cur_vcf_filt[cur_vcf_filt.pos<=cur_excision_end]
             for idx_pos,row_pos in cur_vcf_filt.iterrows():
                 cur_gene_common_var_info.append([row_pos.pos,row_pos.af])
-            
+
+            if top_n_common_snps is not None and len(cur_gene_common_var_info) > top_n_common_snps:
+                cur_gene_common_var_info.sort(key=lambda x: abs(x[1] - 0.5))
+                cur_gene_common_var_info = cur_gene_common_var_info[:top_n_common_snps]
+
             num_common_vars_in_window.append(len(cur_gene_common_var_info))
             common_var_info[cur_gene]=cur_gene_common_var_info
         else:

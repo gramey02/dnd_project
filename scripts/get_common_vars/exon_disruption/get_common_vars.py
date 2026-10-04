@@ -156,30 +156,7 @@ def main():
     exonic_cv_df.to_csv(common_vars_savepath + 'CommonVars_chr' + chrom + '_summary.txt',sep='\t')
     with open(common_vars_savepath + '/CommonVars_chr' + chrom + '_dict.pkl','wb') as file:
         pickle.dump(common_var_info,file)
-
-
-    # merge separate chromosome files
-    if len(os.listdir(common_vars_savepath))==(total_num_chroms*2):
-        directory=common_vars_savepath
-        summary_files=os.listdir(directory)
-        summary_files=[x for x in summary_files if 'summary' in x]
-        dict_files=os.listdir(directory)
-        dict_files=[x for x in dict_files if 'dict' in x]
-        summary_df=None
-        for file in summary_files:
-            int_string=file.split("CommonVars_chr")[1]
-            cur_chrom=int_string.split("_summary.txt")[0]
-            cur_df=pd.read_table(directory+'/'+file, index_col=0)
-            cur_df['chrom']=cur_chrom
-            summary_df = pd.concat([summary_df,cur_df])
-        summary_df.to_csv(directory + '/CommonVars_ALL_summary.txt', sep='\t')
-        summary_df.to_csv(directory + '/CommonVars_ALL_summary_noIDX.txt', sep='\t', header=False, index=False)
-        full_dict={}
-        for file in dict_files:
-            with open(directory + '/' + file, 'rb') as fp:
-                full_dict.update(pickle.load(fp))
-        with open(directory+'/CommonVars_ALL_dict.pkl', 'wb') as fp:
-            pickle.dump(full_dict,fp)
+    # merging across chromosomes now happens in a separate post-array step (merge_common_vars_UER.py)
 
 
 #----------------------------------------------------------------------------------------------------

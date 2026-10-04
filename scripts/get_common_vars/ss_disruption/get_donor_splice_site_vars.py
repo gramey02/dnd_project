@@ -7,6 +7,18 @@ import pandas as pd
 import pickle
 from itertools import product
 
+def atomic_pickle_dump(obj, path):
+    # write-then-rename so concurrent array tasks never see a partially-written file under its final name
+    tmp_path = path + '.tmp'
+    with open(tmp_path, 'wb') as f:
+        pickle.dump(obj, f)
+    os.rename(tmp_path, path)
+
+def atomic_to_csv(df, path, **kwargs):
+    tmp_path = path + '.tmp'
+    df.to_csv(tmp_path, **kwargs)
+    os.rename(tmp_path, path)
+
 def main():
 
     def parse_args():
@@ -18,6 +30,8 @@ def main():
         parser.add_argument('--editing_window_size', type=str, required = True, help="Base editing window size. E.g., '4-8'.")
         parser.add_argument('--output_dir', type=str, required=True, help='Location for output files.')
         parser.add_argument('--base_editor', type=str, required=False, help='Base editor to filter variants by.')
+        parser.add_argument('--chrom', type=str, required=True, help='Chromosome to process.')
+        parser.add_argument('--total_num_chroms', type=int, required=True, help='Total number of unique chromosomes for gene set of interest.')
         args = parser.parse_args()
         return args
     
@@ -79,14 +93,18 @@ def main():
     donor_snp_region = args.donor_snp_region
     output_dir=args.output_dir
     base_editor=args.base_editor
+    chrom=args.chrom
+    total_num_chroms=args.total_num_chroms
 
     # -----------------------------
     # load exons
     # -----------------------------
-    exon_df = pd.read_csv(exon_file, index_col=0)
+    exon_df = pd.read_csv(exon_file, index_col=0, dtype={'chromosome_name': 'str'})
     pc = exon_df[exon_df['transcript_biotype'].isin(
         ['protein_coding','nonsense_mediated_decay','non_stop_decay','lncRNA','miRNA']
     )]
+    # only process this chromosome's genes (this script is run as one SGE array task per chromosome)
+    pc = pc[pc.chromosome_name==chrom]
     # separate out lower and upper bound coordinates to look for snps in
     lb, ub = map(int, donor_snp_region.split('-'))
     # specific base editor range assignment
@@ -97,8 +115,8 @@ def main():
     # load SNPs per chromosome
     # -----------------------------
     vcf_dict = {}
-    for chrom in pc.chromosome_name.unique():
-        f = os.path.join(af_file_dir, f"TGP_chr{chrom}_afs.txt")
+    for gene_chrom in pc.chromosome_name.unique():
+        f = os.path.join(af_file_dir, f"TGP_chr{gene_chrom}_afs.txt")
         df = pd.read_csv(
             f, sep=' ',
             names=['chrom','pos','ref','alt','ac','an','af','afr_af','amr_af','eas_af','eur_af','sas_af']
@@ -106,7 +124,7 @@ def main():
 
         df = df[(df.af >= af_limit) & (df.af <= 1 - af_limit)]
         df.drop_duplicates(subset='pos',keep=False,inplace=True)
-        vcf_dict[chrom] = df[['chrom','pos','af']]
+        vcf_dict[gene_chrom] = df[['chrom','pos','af']]
 
     # =========================================================
     # STEP 1: build exon-level annotated objects (DONOR VERSION)
@@ -206,8 +224,8 @@ def main():
 
     for gene, df in gene_objects.items():
 
-        chrom = pc[pc.hgnc_symbol == gene]['chromosome_name'].values[0]
-        vcf = vcf_dict[chrom]
+        gene_chrom = pc[pc.hgnc_symbol == gene]['chromosome_name'].values[0]
+        vcf = vcf_dict[gene_chrom]
 
         enriched_rows = []
 
@@ -339,10 +357,11 @@ def main():
 
         # save the 'universal donor snp regions' that we found
         universal_donor_snp_regions_byGene[gene] = t1_donor_loc_list
-    with open(output_dir + '/ubiq_regions/ubiq_donorRegions_ALL_chroms.pkl','wb') as file:
-        pickle.dump(universal_donor_snp_regions_byGene, file)
+    ubiq_dir = output_dir + '/ubiq_regions/'
+    atomic_pickle_dump(universal_donor_snp_regions_byGene, ubiq_dir + 'ubiq_donorRegions_chr' + chrom + '.pkl')
+    # merging across chromosomes now happens in a separate post-array step (merge_donor_splice_site_vars.py)
 
-    
+
     # =========================================================
     # STEP 5: keep only SNPs that fall in universal/shared regions
     # =========================================================
@@ -411,14 +430,12 @@ def main():
         'num_common_vars_in_donor_regions':num_common_vars_in_donor_regions,
         'chrom':chroms
     })
-    # save the information here
-    donor_cv_df.to_csv(output_dir + "/ubiq_region_CommonVars/CommonVars_ALL_summary.txt" ,sep='\t')
-    donor_cv_df.to_csv(output_dir + "/ubiq_region_CommonVars/CommonVars_ALL_summary_noIDX.txt" ,sep='\t', index=False, header=False)
-    with open(output_dir + "/ubiq_region_CommonVars/CommonVars_ALL_dict.pkl",'wb') as file:
-        pickle.dump(final_snp_info,file)
-    be_summary_df.to_csv(output_dir + "/ubiq_region_CommonVars/base_editor_summary.txt", sep='\t', index=False)
-
-
+    # save this chromosome's results
+    common_vars_savepath = output_dir + '/ubiq_region_CommonVars/'
+    atomic_to_csv(donor_cv_df, common_vars_savepath + 'CommonVars_chr' + chrom + '_summary.txt', sep='\t')
+    atomic_pickle_dump(final_snp_info, common_vars_savepath + 'CommonVars_chr' + chrom + '_dict.pkl')
+    atomic_to_csv(be_summary_df, common_vars_savepath + 'base_editor_chr' + chrom + '_summary.txt', sep='\t', index=False)
+    # merging across chromosomes now happens in a separate post-array step (merge_donor_splice_site_vars.py)
 
 
 # --------------------------------
