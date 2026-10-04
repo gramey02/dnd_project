@@ -83,17 +83,17 @@ def main():
                     excision_df['edit_strat'] = strat
                     pre_pam_frames.append(excision_df)
                 
-        # load any indel snps respecting NMD induction
+        # load any indel snps, filtering to NMD-inducing ones only when NMD analysis was run
         elif strat=='indels':
             indels_df = None
             indels_path = os.path.join(results_dir, run_name, strat, 'NMD', 'NMD_induction_var_info.csv')
+            af_included = os.path.join(results_dir, run_name, strat, 'ubiq_region_CommonVars', 'CommonVars_ALL_dict.pkl')
             if os.path.exists(indels_path):
                 nmd_df = pd.read_csv(indels_path)
                 if gene in list(nmd_df['gene']):
                     cur_gene_nmd = nmd_df[nmd_df['gene']==gene]
                     cur_gene_nmd_vars = literal_eval(cur_gene_nmd.vars_consistently_inducing_NMD.values[0])
-                    if len(cur_gene_nmd_vars)>0:
-                        af_included=os.path.join(results_dir, run_name, strat, 'ubiq_region_CommonVars', 'CommonVars_ALL_dict.pkl')
+                    if len(cur_gene_nmd_vars)>0 and os.path.exists(af_included):
                         with open(af_included, 'rb') as fp:
                             afs = pickle.load(fp)
                         cur_gene_afs = normalize_pos_af_list(afs.get(gene, []))
@@ -104,9 +104,19 @@ def main():
                                 indel_df = pd.DataFrame(filtered_snps, columns=['pos','af'])
                                 indel_df['edit_strat'] = strat
                                 pre_pam_frames.append(indel_df)
+            elif os.path.exists(af_included):
+                # RUN_NMD was disabled for this pipeline run -- fall back to all common vars,
+                # same as the non-indel, non-excision strategies below
+                with open(af_included, 'rb') as fp:
+                    afs = pickle.load(fp)
+                cur_gene_afs = normalize_pos_af_list(afs.get(gene, []))
+                if len(cur_gene_afs)>0:
+                    indel_df = pd.DataFrame(cur_gene_afs, columns=['pos','af'])
+                    indel_df['edit_strat'] = strat
+                    pre_pam_frames.append(indel_df)
 
-                        
-        # load any non-indel, non-excision snps 
+
+        # load any non-indel, non-excision snps
         else:
             non_excision_df = None
             non_excision_path = os.path.join(results_dir, run_name, strat, 'ubiq_region_CommonVars', 'CommonVars_ALL_dict.pkl')

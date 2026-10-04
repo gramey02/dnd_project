@@ -23,8 +23,14 @@ mkdir -p $bt_dir
 
 # isolate one gene at a time for an array job
 gene=$(awk -v row=$SGE_TASK_ID 'NR == row {print $1}' $gene_file)
+
+# skip genes that already have a BED file
+if [[ -f "$bt_dir/per_gene_files/$gene/${gene}_snp_track_ng.bed" ]]; then
+    echo "BED already exists for $gene, skipping."
+    exit 0
+fi
 # get current chromosome for the gene
-cur_chrom=$(awk -F',' -v gene="$gene" 'NR==1{for(i=1;i<=NF;i++){gsub(/"/,"",$i); if($i=="hgnc_symbol")g=i; if($i=="chromosome_name")c=i}} NR>1 && $g==gene{val=$c; gsub(/"/,"",val); print val; exit}' "$PROJECT_ROOT/$ORIGINAL_EXON_FILE")
+cur_chrom=$(awk -F',' -v gene="$gene" 'NR==1{for(i=1;i<=NF;i++){gsub(/"/,"",$i); if($i=="hgnc_symbol")g=i; if($i=="chromosome_name")c=i}} NR>1{val_g=$g; gsub(/"/,"",val_g); if(val_g==gene){val=$c; gsub(/"/,"",val); print val; exit}}' "$PROJECT_ROOT/$ORIGINAL_EXON_FILE")
 rsID_fp="$project_root/$RSID_MAPS/gnomAD_v4.1.0_PASS_SNVs_chr${cur_chrom}_pos_rsIDs.pkl.gz"
 
 
