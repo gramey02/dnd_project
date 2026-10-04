@@ -48,7 +48,7 @@ if (( num_targetable_genes == 0 )); then
     echo "No targetable genes found in $unique_genes_file" >&2
 else
      qsub -cwd -sync y \
-     -l mem_free=5G -l h_rt=02:00:00 \
+     -l mem_free=10G -l h_rt=04:00:00 \
      -t 1-"$num_targetable_genes" \
      -o "$project_root/logs/out/bed_creation.out" \
      -e "$project_root/logs/err/bed_creation.err" \
@@ -74,7 +74,7 @@ fi
 bigbed_script="$script_dir/browser_tracks/create_bigbeds.sh"
 
 qsub -cwd \
-     -l mem_free=5G -l h_rt=02:00:00 \
+     -l mem_free=16G -l h_rt=08:00:00 \
      -o "$project_root/logs/out/bigbed_conversion.out" \
      -e "$project_root/logs/err/bigbed_conversion.err" \
      "$bigbed_script" "$param_file" "$unique_genes_file" "$output_dir"
