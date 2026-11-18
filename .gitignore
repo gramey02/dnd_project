@@ -14,3 +14,8 @@ old_excavate_env.yml
 test/
 data/reference_genomes/*.fai
 data/reference_genomes/*.fa.gz
+# Nextflow
+work/
+.nextflow/
+.nextflow.log*
+nf_results/
